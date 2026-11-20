@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claims-assistant
+  labels:
+    app: claims-assistant
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: claims-assistant
+  template:
+    metadata:
+      labels:
+        app: claims-assistant
+        # Keyless access to Azure OpenAI and AI Search through AKS workload identity (no API keys in the cluster).
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: claims-assistant
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: api
+          image: claims-assistant:1.0.0 # pushed by CI to your registry, e.g. <registry>.azurecr.io/claims-assistant
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: claims-assistant
+          env:
+            # Only if you use keys instead of workload identity; the secret is created outside this repo.
+            - name: AZURE_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef: { name: claims-assistant-secrets, key: azure-openai-api-key, optional: true }
+            - name: AZURE_SEARCH_API_KEY
+              valueFrom:
+                secretKeyRef: { name: claims-assistant-secrets, key: azure-search-api-key, optional: true }
+          readinessProbe:
+            httpGet: { path: /health, port: 8000 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 8000 }
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { cpu: "1", memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - name: var # traces and the audit log; in production ship them to a log store
+              mountPath: /app/var
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: var
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claims-assistant
+  annotations:
+    azure.workload.identity/client-id: "<managed-identity-client-id>"

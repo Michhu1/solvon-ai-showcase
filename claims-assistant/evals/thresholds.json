@@ -1,0 +1,9 @@
+{
+  "_comment": "Quality gate: CI fails when any metric drops below its threshold. Raise them as the system improves.",
+  "category_accuracy": 0.9,
+  "field_accuracy": 0.9,
+  "next_step_accuracy": 0.85,
+  "groundedness": 0.9,
+  "retrieval_hit_at_k": 0.85,
+  "pii_leak_free": 1.0
+}

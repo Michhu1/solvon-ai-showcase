@@ -1,0 +1,76 @@
+name: claims-assistant
+
+on:
+  push:
+    branches: [main]
+    paths: ["claims-assistant/**", ".github/workflows/claims-assistant.yml"]
+  pull_request:
+    paths: ["claims-assistant/**", ".github/workflows/claims-assistant.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: claims-assistant
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: claims-assistant/pyproject.toml
+      - run: pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check . && ruff format --check .
+      - name: Tests (offline, no keys)
+        run: pytest
+
+  eval:
+    # Offline evaluation with a quality gate: the job fails when a metric drops below evals/thresholds.json.
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: claims-assistant/pyproject.toml
+      - run: pip install -e ".[eval]"
+      - name: Evaluate
+        run: python evals/run_eval.py | tee eval-report.txt; exit ${PIPESTATUS[0]}
+        shell: bash
+      - name: Keep the MLflow run and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-mlruns
+          path: |
+            claims-assistant/mlruns
+            claims-assistant/eval-report.txt
+
+  docker:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build image
+        run: docker build -t claims-assistant:ci .
+      - name: Smoke test
+        run: |
+          docker run -d --name api -p 8000:8000 claims-assistant:ci
+          for i in $(seq 1 20); do curl -fsS localhost:8000/health && break; sleep 1; done
+          curl -fsS -X POST localhost:8000/claims/assess -H 'content-type: application/json' \
+            -d '{"policy_number":"MOT-2026-000001","product":"motor","description":"A stone cracked my windscreen on 2026-10-03. Replacement: 1 900 PLN."}' \
+            | tee /dev/stderr | grep -q '"next_step":"fast_track"'
+      - name: Validate Kubernetes manifests
+        run: |
+          curl -fsSL -o kubeconform.tgz https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar xzf kubeconform.tgz kubeconform
+          ./kubeconform -strict -summary k8s/

@@ -1,0 +1,38 @@
+[project]
+name = "claims-assistant"
+version = "1.0.0"
+description = "Claims triage assistant: RAG over policy terms, a tool-using agent, guardrails, evaluation and LLMOps."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.165",
+    "uvicorn>=0.54",
+    "pydantic>=2.14",
+    "openai>=3.57",
+    "azure-search-documents>=12.1",
+    "azure-identity>=1.27",
+]
+
+[project.optional-dependencies]
+eval = ["mlflow>=3.18"]
+dev = ["pytest>=9.2", "httpx>=0.28", "ruff>=0.17", "pyyaml>=6.0"]
+
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]

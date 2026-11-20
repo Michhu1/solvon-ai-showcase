@@ -1,0 +1,32 @@
+{
+  "_comment": "Structured view of the synthetic policy terms, used by the check_coverage and estimate_payout tools.",
+  "fast_track_limit": 5000,
+  "products": {
+    "motor": {
+      "causes": {
+        "collision": { "clause": "MOT-2.1", "deductible": 500, "limit": 80000, "documents": ["photos", "repair estimate"] },
+        "theft": { "clause": "MOT-2.2", "deductible": 0, "limit": 80000, "documents": ["police report"], "always_adjuster": true },
+        "glass": { "clause": "MOT-2.3", "deductible": 0, "limit": 3000, "documents": ["photos", "invoice"] },
+        "natural": { "clause": "MOT-2.4", "deductible": 500, "limit": 80000, "documents": ["photos", "repair estimate"] }
+      },
+      "exclusions": { "clause": "MOT-3.1", "circumstances": ["alcohol", "no_licence", "racing"] }
+    },
+    "home": {
+      "causes": {
+        "fire": { "clause": "HOM-2.1", "deductible": 300, "limit": 400000, "documents": ["photos", "list of damaged items"] },
+        "water": { "clause": "HOM-2.2", "deductible": 300, "limit": 50000, "documents": ["photos", "list of damaged items"] },
+        "burglary": { "clause": "HOM-2.3", "deductible": 300, "limit": 30000, "documents": ["police report", "list of stolen items"], "always_adjuster": true },
+        "flood": { "clause": "HOM-2.4", "deductible": 500, "limit": 100000, "documents": ["photos", "list of damaged items"] }
+      },
+      "exclusions": { "clause": "HOM-3.1", "circumstances": ["gradual_leak", "wear_and_tear", "no_forced_entry"] }
+    },
+    "travel": {
+      "causes": {
+        "medical": { "clause": "TRV-2.1", "deductible": 0, "limit": 200000, "documents": ["medical documentation", "bills"] },
+        "baggage": { "clause": "TRV-2.2", "deductible": 100, "limit": 3000, "documents": ["property irregularity report"] },
+        "cancellation": { "clause": "TRV-2.3", "deductible": 0, "limit": 10000, "documents": ["doctor's certificate", "booking confirmation"] }
+      },
+      "exclusions": { "clause": "TRV-3.1", "circumstances": ["pre_existing_condition", "alcohol", "extreme_sports"] }
+    }
+  }
+}

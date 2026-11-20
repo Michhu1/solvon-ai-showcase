@@ -1,0 +1,12 @@
+.env
+*.log
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+claims-assistant/mlruns/
+claims-assistant/traces/
+claims-assistant/audit/
+claims-assistant/var/
+claims-assistant/eval-report.txt
