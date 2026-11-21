@@ -2,7 +2,7 @@
   "name": "Claims Hub · 4 · Assign adjuster (round robin)",
   "nodes": [
     {
-      "id": "36b89d68-5469-49bb-842e-89990b21b9e9",
+      "id": "613c398d-625e-4c42-a71e-75546b00a83a",
       "name": "Section · Input",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -18,7 +18,7 @@
       }
     },
     {
-      "id": "057d3157-934e-4f5c-85f3-8f1545224201",
+      "id": "db4d5b38-59aa-459a-a6dd-0b028f564a23",
       "name": "Section · Pick the least busy adjuster",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -34,7 +34,7 @@
       }
     },
     {
-      "id": "fbb9fc22-c3bc-42ba-87cb-cc8feaa7e087",
+      "id": "4727a979-ac86-478f-9b7d-04b0515d3a27",
       "name": "Section · Book the workload",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -50,7 +50,7 @@
       }
     },
     {
-      "id": "8b56dd55-d0bc-47d5-87fe-60c76929b58a",
+      "id": "0f6dcf07-a044-4161-a4f1-470974986411",
       "name": "When claim needs adjuster",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.3,
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "92c58dad-cdcb-4ed5-8cf5-8ec12721a41e",
+      "id": "734b48fa-542e-444b-8843-b9b51d8520cc",
       "name": "Load adjusters",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -98,7 +98,7 @@
       "executeOnce": true
     },
     {
-      "id": "4a52436d-b681-4c94-9ab8-b61aebc9e81a",
+      "id": "6a54b351-9cf5-4f48-aba7-f4d39c19caaa",
       "name": "Least busy first",
       "type": "n8n-nodes-base.sort",
       "typeVersion": 1,
@@ -119,7 +119,7 @@
       }
     },
     {
-      "id": "a311ce28-1ac4-45cf-a822-b3131b75c4e4",
+      "id": "36dc67fa-edac-48a4-8e22-c1df40686aae",
       "name": "Pick one",
       "type": "n8n-nodes-base.limit",
       "typeVersion": 1,
@@ -133,7 +133,7 @@
       }
     },
     {
-      "id": "66c78890-ed05-4f9f-8bb6-c3ab8bb18121",
+      "id": "4c29df8d-15d9-4fa3-badf-e478ca765d42",
       "name": "Book workload",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -170,7 +170,7 @@
       }
     },
     {
-      "id": "d0b50690-831a-4609-96ec-2af9f1ae20f3",
+      "id": "713f6588-56b1-4bd7-a057-a07c99b9f4f2",
       "name": "Assignee",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -183,7 +183,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "165b4dcc-8d5d-4b6b-ba34-0a8f15fb1d50",
+              "id": "58d6689d-b0b6-4c10-8cb7-16fbdec8b1f7",
               "name": "assignee",
               "value": "={{ $json.name }}",
               "type": "string"
@@ -195,7 +195,7 @@
       }
     },
     {
-      "id": "ebf9f243-4dd1-47df-b740-ced19133ba5c",
+      "id": "de0e07f1-848f-40d2-8926-439675416eeb",
       "name": "Attach assignee to claim",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,

@@ -576,9 +576,20 @@ def intake(t: dict, wf: dict) -> Flow:
         "if",
         2.4,
         {
-            **if_params(
-                cond("={{ $json.headers['x-hub-token'] || '' }}", "string", "equals", "={{ $vars.HUB_TOKEN }}")
-            ),
+            # Strict, case-sensitive, and fail-closed: a missing or short HUB_TOKEN never authorizes anyone.
+            "conditions": {
+                "options": {"caseSensitive": True, "leftValue": "", "typeValidation": "strict", "version": 2},
+                "conditions": [
+                    cond(
+                        "={{ typeof $vars.HUB_TOKEN === 'string' && $vars.HUB_TOKEN.length >= 16"
+                        " && $json.headers['x-hub-token'] === $vars.HUB_TOKEN }}",
+                        "boolean",
+                        "true",
+                    )
+                ],
+                "combinator": "and",
+            },
+            "looseTypeValidation": False,
             "options": {},
         },
         260,

@@ -2,7 +2,7 @@
   "name": "Claims Hub · 6 · Daily KPI digest",
   "nodes": [
     {
-      "id": "6ef81d95-d7f7-42e2-931b-4f6b2cd4465f",
+      "id": "b98b5a82-5862-4e40-8e74-19467dab01c0",
       "name": "Section · 07:00 every day",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -18,7 +18,7 @@
       }
     },
     {
-      "id": "4d6a3ba1-1348-420f-b0b4-220e3260f771",
+      "id": "5882b165-20cf-40dd-b99b-4d634942ed8d",
       "name": "Section · Aggregate",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -34,7 +34,7 @@
       }
     },
     {
-      "id": "e941b5c0-05c9-43ab-84de-bd3aae81cc12",
+      "id": "23aecac1-36ed-4aa4-96b4-b1d0580e7b75",
       "name": "Section · Publish",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -50,7 +50,7 @@
       }
     },
     {
-      "id": "2e06c860-f9d6-4095-9858-664b359b0939",
+      "id": "4ef83266-799e-40f8-81cb-df0406512510",
       "name": "Every day 07:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.4,
@@ -70,7 +70,7 @@
       }
     },
     {
-      "id": "b4722b51-5fe6-4bf9-a0f1-78a5562aee5c",
+      "id": "212b43b2-8be7-48c5-9e2f-d063b14ddf17",
       "name": "All claims",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -90,7 +90,7 @@
       }
     },
     {
-      "id": "9939f0db-827c-4421-947a-40d6ab96d85d",
+      "id": "f20acd56-3854-4cd3-9520-a493f8cc9494",
       "name": "Last 24 hours",
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.4,
@@ -108,7 +108,7 @@
           },
           "conditions": [
             {
-              "id": "f02ab20d-a0a0-4a34-ae94-ac3e8a166787",
+              "id": "7515363e-af10-4a69-a958-27473efd07e3",
               "leftValue": "={{ $json.received_at }}",
               "operator": {
                 "type": "dateTime",
@@ -124,7 +124,7 @@
       }
     },
     {
-      "id": "e76a89e0-dfe1-40d2-8481-32354f535f02",
+      "id": "85dcc015-10c3-464a-a0bd-0b97c16e3691",
       "name": "Per lane",
       "type": "n8n-nodes-base.summarize",
       "typeVersion": 1.1,
@@ -146,7 +146,7 @@
       }
     },
     {
-      "id": "baba7838-3f7c-4d28-9615-0389f7475579",
+      "id": "aa95e0f9-1cc5-4b40-8232-46f581f8888b",
       "name": "Totals",
       "type": "n8n-nodes-base.summarize",
       "typeVersion": 1.1,
@@ -175,7 +175,7 @@
       }
     },
     {
-      "id": "64c41b37-2c45-4891-ac2b-a231cad21df0",
+      "id": "a96ccc89-487e-4ea0-b978-acf0678ee84f",
       "name": "Wait for both",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
@@ -189,7 +189,7 @@
       }
     },
     {
-      "id": "de7385b4-7a7e-47da-9c0f-3e4b712aee96",
+      "id": "76afbe9d-9b79-4006-8def-c41f2ed0c3cc",
       "name": "One item",
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
@@ -204,7 +204,7 @@
       }
     },
     {
-      "id": "d9ab965f-f34f-4730-8c22-5fbd0077a56b",
+      "id": "ae7e3801-d22c-46a7-91f1-5f813c236cd7",
       "name": "Build report",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -217,43 +217,43 @@
         "assignments": {
           "assignments": [
             {
-              "id": "c4cf5e18-870a-4818-9335-8d4c03c308cd",
+              "id": "62bba9ad-e119-4e85-82ff-0822d9907a67",
               "name": "claims",
               "value": "={{ $('Totals').first().json.count_claim_id }}",
               "type": "number"
             },
             {
-              "id": "3037a096-c3d7-4e1d-8e78-c5ef69c0f0a0",
+              "id": "90ba7b3a-6a4d-4554-9e16-ca6f39bcd173",
               "name": "fast_track",
               "value": "={{ ($('Per lane').all().find(i => i.json.next_step === 'fast_track') || { json: { count_claim_id: 0 } }).json.count_claim_id }}",
               "type": "number"
             },
             {
-              "id": "9d4c6630-0d45-4186-ad49-0d974d305cb1",
+              "id": "04f029ce-7847-4a4e-98ce-a7d2cfb2a47e",
               "name": "adjuster",
               "value": "={{ ($('Per lane').all().find(i => i.json.next_step === 'assign_adjuster') || { json: { count_claim_id: 0 } }).json.count_claim_id }}",
               "type": "number"
             },
             {
-              "id": "94b2b49e-f586-47de-80a6-e04e8e6ab9c6",
+              "id": "5427ac7f-f1c7-464f-8af9-509f9d357554",
               "name": "info_requested",
               "value": "={{ ($('Per lane').all().find(i => i.json.next_step === 'request_information') || { json: { count_claim_id: 0 } }).json.count_claim_id }}",
               "type": "number"
             },
             {
-              "id": "a047b860-cd5a-4e5f-9560-19c630263cac",
+              "id": "0dc89d99-6650-4e8e-9782-6bf3bbe7bf12",
               "name": "exclusion_review",
               "value": "={{ ($('Per lane').all().find(i => i.json.next_step === 'review_possible_exclusion') || { json: { count_claim_id: 0 } }).json.count_claim_id }}",
               "type": "number"
             },
             {
-              "id": "2b23bf66-db02-48fe-9adc-6987c346d4f0",
+              "id": "3301c569-0dcc-417f-8bed-b6afd2a3b1d1",
               "name": "total_claimed",
               "value": "={{ $('Totals').first().json.sum_amount }}",
               "type": "number"
             },
             {
-              "id": "a4c333e8-668a-48e8-ad36-f10a1c168416",
+              "id": "334e5ddc-6ed0-4161-bf2b-d40f28a7f504",
               "name": "total_payout",
               "value": "={{ $('Totals').first().json.sum_payout }}",
               "type": "number"
@@ -265,7 +265,7 @@
       }
     },
     {
-      "id": "a13099f8-6122-49aa-b8a9-dbed3eaaf828",
+      "id": "398bdc93-1f17-45b2-bad6-8c81a3d40b10",
       "name": "Store KPI row",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -299,7 +299,7 @@
       }
     },
     {
-      "id": "54c591a0-c013-428c-b6ec-a5f7d2b87fef",
+      "id": "561cbf4a-3e51-4979-8d35-69b87d04edcf",
       "name": "Send digest",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -330,7 +330,7 @@
       }
     },
     {
-      "id": "d98c9c12-64cf-4436-9f42-eb7f6c1a603b",
+      "id": "3198d1db-7dbc-4f31-ba18-828a9ca0128c",
       "name": "Count time saved",
       "type": "n8n-nodes-base.timeSaved",
       "typeVersion": 1,
