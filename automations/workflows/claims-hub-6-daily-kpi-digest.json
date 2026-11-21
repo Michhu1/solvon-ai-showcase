@@ -1,0 +1,471 @@
+{
+  "name": "Claims Hub · 6 · Daily KPI digest",
+  "nodes": [
+    {
+      "id": "00e563ea-714f-48a3-bbc7-389f74fee6fd",
+      "name": "Section · 07:00 every day",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "content": "## 07:00 every day\nClaims received in the last 24 hours.",
+        "width": 680,
+        "height": 620,
+        "color": 7
+      }
+    },
+    {
+      "id": "8ed42026-5bd9-49bd-91b9-8f60f5be91b8",
+      "name": "Section · Aggregate",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        700,
+        0
+      ],
+      "parameters": {
+        "content": "## Aggregate\nPer-lane counts and totals in parallel.",
+        "width": 920,
+        "height": 620,
+        "color": 6
+      }
+    },
+    {
+      "id": "6e0708a8-91d6-4882-ad87-10e5adc56337",
+      "name": "Section · Publish",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1640,
+        0
+      ],
+      "parameters": {
+        "content": "## Publish\nStore the KPI row, send the digest, count time saved.",
+        "width": 1120,
+        "height": 620,
+        "color": 4
+      }
+    },
+    {
+      "id": "59f73d2e-243f-4b57-9bc0-e824936d15e7",
+      "name": "Every day 07:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        120,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "c260f0f2-b3ff-4677-9add-6aed4c0c9b97",
+      "name": "All claims",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "mode": "id"
+        },
+        "returnAll": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "f88a9532-8d45-4fcf-8b7f-f5bd8a416962",
+      "name": "Last 24 hours",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.4,
+      "position": [
+        560,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9ea668d2-c95e-4354-99ef-6ef8e2cc9ef7",
+              "leftValue": "={{ $json.received_at }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "after"
+              },
+              "rightValue": "={{ $now.minus({ days: 1 }).toISO() }}"
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "6bb511ec-c22e-42c7-b515-94d7e6b94adf",
+      "name": "Per lane",
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        780,
+        180
+      ],
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "count",
+              "field": "claim_id"
+            }
+          ]
+        },
+        "fieldsToSplitBy": "next_step",
+        "options": {}
+      }
+    },
+    {
+      "id": "5f74eb89-a1d0-4c90-8720-78ba74d7bed0",
+      "name": "Totals",
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        780,
+        420
+      ],
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "count",
+              "field": "claim_id"
+            },
+            {
+              "aggregation": "sum",
+              "field": "amount"
+            },
+            {
+              "aggregation": "sum",
+              "field": "payout"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9b6c2824-1e3f-44a3-bb74-b540ba64fd89",
+      "name": "Wait for both",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1000,
+        300
+      ],
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 2
+      }
+    },
+    {
+      "id": "11b80934-2153-482e-bb8f-3fed8c1b6f42",
+      "name": "One item",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1220,
+        300
+      ],
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "rows",
+        "options": {}
+      }
+    },
+    {
+      "id": "d9e53073-82f0-4493-bbf4-70a8603f2d0d",
+      "name": "Build report",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        300
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e764b40-53d1-4a4d-888c-139469cae023",
+              "name": "claims",
+              "value": "={{ $('Totals').first().json.count_claim_id }}",
+              "type": "number"
+            },
+            {
+              "id": "58a5eb13-a75d-4ae7-aadb-fbb078b18c57",
+              "name": "fast_track",
+              "value": "={{ ($('Per lane').all().find(i => i.json.next_step === 'fast_track') || { json: { count_claim_id: 0 } }).json.count_claim_id }}",
+              "type": "number"
+            },
+            {
+              "id": "85ba2e1a-c25d-495d-a7eb-99263607c947",
+              "name": "adjuster",
+              "value": "={{ ($('Per lane').all().find(i => i.json.next_step === 'assign_adjuster') || { json: { count_claim_id: 0 } }).json.count_claim_id }}",
+              "type": "number"
+            },
+            {
+              "id": "692d595f-3da2-42c3-abeb-668075c70d95",
+              "name": "info_requested",
+              "value": "={{ ($('Per lane').all().find(i => i.json.next_step === 'request_information') || { json: { count_claim_id: 0 } }).json.count_claim_id }}",
+              "type": "number"
+            },
+            {
+              "id": "5853020e-26c1-4d30-b943-8ebffee4f4a7",
+              "name": "exclusion_review",
+              "value": "={{ ($('Per lane').all().find(i => i.json.next_step === 'review_possible_exclusion') || { json: { count_claim_id: 0 } }).json.count_claim_id }}",
+              "type": "number"
+            },
+            {
+              "id": "f4ad0414-22cf-480d-997e-845af1e66185",
+              "name": "total_claimed",
+              "value": "={{ $('Totals').first().json.sum_amount }}",
+              "type": "number"
+            },
+            {
+              "id": "fb5ad438-77cd-4ed9-b884-a655a1779b95",
+              "name": "total_payout",
+              "value": "={{ $('Totals').first().json.sum_payout }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "ddcba23d-d480-4b1a-873c-be73f6d9ac85",
+      "name": "Store KPI row",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1700,
+        300
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "a90c9523-e920-4e04-bfe5-fe692a07ea96",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "report_date": "={{ $today.toISO() }}",
+            "claims": "={{ $json.claims }}",
+            "fast_track": "={{ $json.fast_track }}",
+            "adjuster": "={{ $json.adjuster }}",
+            "info_requested": "={{ $json.info_requested }}",
+            "exclusion_review": "={{ $json.exclusion_review }}",
+            "total_claimed": "={{ $json.total_claimed }}",
+            "total_payout": "={{ $json.total_payout }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1f4c2a49-d393-4363-81e7-70ed050a3b4a",
+      "name": "Send digest",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1920,
+        300
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "email",
+            "recipient": "management@claims.example",
+            "subject": "=Claims KPI {{ $today.toFormat('yyyy-MM-dd') }}",
+            "body": "={{ $('Build report').item.json.claims }} claims | fast track {{ $('Build report').item.json.fast_track }} | adjuster {{ $('Build report').item.json.adjuster }} | info {{ $('Build report').item.json.info_requested }} | review {{ $('Build report').item.json.exclusion_review }} | payout {{ $('Build report').item.json.total_payout }} PLN",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fe09d9fc-d57e-42f3-bf6e-7e0315e529af",
+      "name": "Count time saved",
+      "type": "n8n-nodes-base.timeSaved",
+      "typeVersion": 1,
+      "position": [
+        2140,
+        300
+      ],
+      "parameters": {
+        "mode": "once",
+        "minutesSaved": 30
+      }
+    }
+  ],
+  "connections": {
+    "Every day 07:00": {
+      "main": [
+        [
+          {
+            "node": "All claims",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "All claims": {
+      "main": [
+        [
+          {
+            "node": "Last 24 hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Last 24 hours": {
+      "main": [
+        [
+          {
+            "node": "Per lane",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Totals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Per lane": {
+      "main": [
+        [
+          {
+            "node": "Wait for both",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Totals": {
+      "main": [
+        [
+          {
+            "node": "Wait for both",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Wait for both": {
+      "main": [
+        [
+          {
+            "node": "One item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One item": {
+      "main": [
+        [
+          {
+            "node": "Build report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build report": {
+      "main": [
+        [
+          {
+            "node": "Store KPI row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store KPI row": {
+      "main": [
+        [
+          {
+            "node": "Send digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send digest": {
+      "main": [
+        [
+          {
+            "node": "Count time saved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Europe/Warsaw",
+    "errorWorkflow": "82e5226a-ec9b-45a2-abc5-5c603a205007",
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all"
+  }
+}

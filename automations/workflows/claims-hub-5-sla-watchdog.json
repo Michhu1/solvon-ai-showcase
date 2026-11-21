@@ -1,0 +1,390 @@
+{
+  "name": "Claims Hub · 5 · SLA watchdog",
+  "nodes": [
+    {
+      "id": "d0f5b6b5-41cf-4d06-a3dc-288e499f9afb",
+      "name": "Section · Every hour",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "content": "## Every hour\nFind open adjuster tasks past their due time.",
+        "width": 900,
+        "height": 520,
+        "color": 7
+      }
+    },
+    {
+      "id": "a00e2042-8084-49ac-b940-44120e84840c",
+      "name": "Section · Escalate in batches",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        920,
+        0
+      ],
+      "parameters": {
+        "content": "## Escalate in batches\nMark escalated and page the team lead, 5 tasks per batch.",
+        "width": 1120,
+        "height": 520,
+        "color": 3
+      }
+    },
+    {
+      "id": "b775ee5c-7194-4b1e-9c7c-82d62221ad84",
+      "name": "Section · Digest",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2060,
+        0
+      ],
+      "parameters": {
+        "content": "## Digest\nOne summary message per run.",
+        "width": 700,
+        "height": 520,
+        "color": 5
+      }
+    },
+    {
+      "id": "048fc088-4260-4ad1-83b6-ff1073fcf785",
+      "name": "Every hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        120,
+        260
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "99827154-d20d-4979-ac33-bb8f405a0f36",
+      "name": "Open tasks",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        340,
+        260
+      ],
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ffd868d0-c40c-4534-8b19-b10807a6d00a",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "open"
+            },
+            {
+              "keyName": "escalated",
+              "condition": "isFalse"
+            }
+          ]
+        },
+        "returnAll": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "e85ebcad-a086-490d-825e-3a9bedef09a4",
+      "name": "Overdue only",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.4,
+      "position": [
+        560,
+        260
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0d94f3e6-9614-4db8-892d-cec035a818a7",
+              "leftValue": "={{ $json.due_at }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              },
+              "rightValue": "={{ $now.toISO() }}"
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "f7f927af-e862-4848-b9f7-1971b91c61fe",
+      "name": "Batches of 5",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        980,
+        260
+      ],
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      }
+    },
+    {
+      "id": "a36a84c9-e5aa-487e-9494-889f6ab20015",
+      "name": "Mark escalated",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        400
+      ],
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ffd868d0-c40c-4534-8b19-b10807a6d00a",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "claim_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.claim_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "escalated": "={{ true }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "438f4908-eeb2-4a7a-bdc4-9d5c6d186e09",
+      "name": "Page team lead",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1420,
+        400
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "pager",
+            "recipient": "team-lead",
+            "subject": "=SLA breach: claim {{ $('Batches of 5').item.json.claim_id }}",
+            "body": "=Assignee {{ $('Batches of 5').item.json.assignee }}, due {{ $('Batches of 5').item.json.due_at }}",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fe52f54e-8f4f-4c56-9478-61909de52ce7",
+      "name": "Next batch",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1640,
+        400
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "24ea88d5-eb7f-4dcf-9026-37163ec18f4f",
+      "name": "Count breaches",
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        2120,
+        260
+      ],
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "count",
+              "field": "claim_id"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "6d7e1c2c-b1d2-485f-8884-cfd41952de9d",
+      "name": "Send digest",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2340,
+        260
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "chat",
+            "recipient": "claims-desk",
+            "subject": "=SLA watchdog: {{ $json.count_claim_id }} escalations",
+            "body": "=Run at {{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Every hour": {
+      "main": [
+        [
+          {
+            "node": "Open tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Open tasks": {
+      "main": [
+        [
+          {
+            "node": "Overdue only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Overdue only": {
+      "main": [
+        [
+          {
+            "node": "Batches of 5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Batches of 5": {
+      "main": [
+        [
+          {
+            "node": "Count breaches",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark escalated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark escalated": {
+      "main": [
+        [
+          {
+            "node": "Page team lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Page team lead": {
+      "main": [
+        [
+          {
+            "node": "Next batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Next batch": {
+      "main": [
+        [
+          {
+            "node": "Batches of 5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count breaches": {
+      "main": [
+        [
+          {
+            "node": "Send digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Europe/Warsaw",
+    "errorWorkflow": "82e5226a-ec9b-45a2-abc5-5c603a205007",
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all"
+  }
+}

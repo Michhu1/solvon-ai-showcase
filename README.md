@@ -1,16 +1,25 @@
 # AI engineering showcase: Solvon + a GenAI claims assistant
 
-This repository has two parts:
+This repository has three parts:
 
-1. **[`claims-assistant/`](claims-assistant/)** — an open-source (MIT) Python demo written for this repo:
-   a GenAI assistant that triages insurance claims, with RAG, an agent, evaluation and LLMOps.
-2. **Solvon** — a platform for building AI agents and workflow automations that I am building with a team of
+1. **[`automations/`](automations/)** — **Claims Operations Hub**: 7 connected workflows (99 nodes) built and run in
+   Solvon — webhooks, public forms, human-in-the-loop waits, sub-workflows, schedules, error handling, data tables.
+2. **[`claims-assistant/`](claims-assistant/)** — an open-source (MIT) Python demo written for this repo:
+   a GenAI assistant that triages insurance claims, with RAG, an agent, evaluation and LLMOps. It feeds the hub.
+3. **Solvon** — a platform for building AI agents and workflow automations that I am building with a team of
    AI agents. Its source is private; this page describes what it does and how it is built.
+
+[![Claims Operations Hub - main workflow in Solvon](docs/automations/hub-canvas.png)](automations/)
+
+<sub>The main workflow of the Claims Operations Hub on the Solvon canvas — [details, run data and the other 6 workflows](automations/).</sub>
 
 ## Highlights
 
 | | |
 |---|---|
+| **Workflow automation** | 7 workflows, 25 node types: validation with 422/409, a 4-lane router, round-robin assignment, SLA escalation in batches, daily KPIs, a global error workflow ([automations/](automations/)) |
+| **Human in the loop** | Executions answer `202` at once and **wait for a form** — customer details or a handler's decision — then continue |
+| **Automation as code** | The whole hub is generated from Python and deployed through Solvon's REST API, idempotently ([hub.py](automations/hub.py), [deploy.py](automations/deploy.py)) |
 | **RAG with citations** | Policy terms chunked by clause; `Retriever` interface with local BM25 and **Azure AI Search** ([retrieval.py](claims-assistant/src/claims_assistant/retrieval.py)); every answer quotes its sources |
 | **AI agent** | Tool-calling loop (`search_policy`, `check_coverage`, `estimate_payout`) with step limit, per-step trace and deterministic guardrails ([agent.py](claims-assistant/src/claims_assistant/agent.py)) |
 | **Azure OpenAI** | `LLMClient` on the official `openai` SDK, API key or keyless Entra ID; offline stand-in so everything runs without keys ([llm.py](claims-assistant/src/claims_assistant/llm.py)) |
@@ -26,6 +35,9 @@ This repository has two parts:
 cd claims-assistant
 make install && make test && make eval   # offline: no keys, no cloud
 ```
+
+The AI and the automation are connected: `automations/traffic.py` runs each claim through the claims assistant and
+posts its assessment to the hub's webhook, where Solvon takes over the process.
 
 ---
 
@@ -180,7 +192,12 @@ The Solvon product itself — its source code, plans and design — is private a
 
 ## Po polsku
 
-Repozytorium ma dwie części. **`claims-assistant/`** to otwarte (MIT) demo w Pythonie: asystent GenAI do wstępnej
+**`automations/`** to „Claims Operations Hub” — 7 połączonych workflowów (99 węzłów) zbudowanych i uruchomionych
+w Solvonie: webhook z walidacją, router na 4 tory, formularze, na które wykonanie czeka (decyzja likwidatora,
+dane od klienta), podworkflowy, harmonogramy (eskalacja SLA, dzienne KPI), globalny workflow błędów i tabele danych.
+Cały system jest zapisany jako kod w Pythonie i wgrywany przez REST API Solvona.
+
+Pozostałe części repozytorium: **`claims-assistant/`** to otwarte (MIT) demo w Pythonie: asystent GenAI do wstępnej
 oceny zgłoszeń szkód — RAG z cytatami z warunków ubezpieczenia (lokalnie BM25 albo Azure AI Search), agent
 z narzędziami na Azure OpenAI, ewaluacja z progiem jakości w CI i zapisem do MLflow, FastAPI, Docker, Kubernetes,
 maskowanie danych osobowych, dziennik audytu, karta modelu i analiza AI Act. Wszystko działa bez kluczy.

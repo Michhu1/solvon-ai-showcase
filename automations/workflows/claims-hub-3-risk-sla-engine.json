@@ -1,0 +1,491 @@
+{
+  "name": "Claims Hub · 3 · Risk & SLA engine",
+  "nodes": [
+    {
+      "id": "befc82b6-3925-4a19-8b91-0a75a96ce70a",
+      "name": "Section · Input",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        40,
+        120
+      ],
+      "parameters": {
+        "content": "## Input\nCalled by the intake flows with one claim.",
+        "width": 300,
+        "height": 380,
+        "color": 7
+      }
+    },
+    {
+      "id": "2b55e366-65df-4a25-96f9-82c91ff25e6a",
+      "name": "Section · Risk scoring",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        360,
+        120
+      ],
+      "parameters": {
+        "content": "## Risk scoring\nRule-based score: amount band, risky causes, late reporting.",
+        "width": 680,
+        "height": 380,
+        "color": 6
+      }
+    },
+    {
+      "id": "397a07b4-0794-415b-88db-300e15c269f8",
+      "name": "Section · Priority & SLA",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        120
+      ],
+      "parameters": {
+        "content": "## Priority & SLA\nPriority decides the SLA; due date = received + SLA hours.",
+        "width": 1120,
+        "height": 680,
+        "color": 5
+      }
+    },
+    {
+      "id": "97e914ad-89eb-42ef-9dc8-974c1b286048",
+      "name": "When called by intake",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        100,
+        300
+      ],
+      "parameters": {
+        "inputSource": "passthrough"
+      }
+    },
+    {
+      "id": "a91bdebe-9ce6-4533-b151-39285dc2bdd0",
+      "name": "Risk factors",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        420,
+        300
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b08f77ea-517f-4d11-a9c3-1546d898da27",
+              "name": "amount_points",
+              "value": "={{ $json.amount > 20000 ? 40 : ($json.amount > 5000 ? 20 : 5) }}",
+              "type": "number"
+            },
+            {
+              "id": "afde1d8d-44f1-4b66-b735-db7742217e7f",
+              "name": "cause_points",
+              "value": "={{ /theft|stolen|fire|burglar|break-in/i.test($json.description) ? 25 : 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "891222fa-b223-401c-94ad-825ab3e86ab9",
+              "name": "late_points",
+              "value": "={{ $json.incident_date && DateTime.fromISO($json.received_at).diff(DateTime.fromISO($json.incident_date), 'days').days > 14 ? 15 : 0 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "8cb93a20-649a-4118-b185-d3f57b348337",
+      "name": "Risk score",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        640,
+        300
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d9cea679-3255-4db6-877c-7b093beb6365",
+              "name": "risk_score",
+              "value": "={{ $json.amount_points + $json.cause_points + $json.late_points }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "3436307b-3c3d-4a55-a962-717d590ac04c",
+      "name": "Priority",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        1100,
+        300
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "17b29dd8-fb97-412c-8467-35abe9e4fd2a",
+                    "leftValue": "={{ $json.risk_score }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    },
+                    "rightValue": 50
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "High"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "785177cd-5488-42c0-b13f-3693f9d99821",
+                    "leftValue": "={{ $json.risk_score }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    },
+                    "rightValue": 25
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Medium"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8da2ccc0-ea1f-4617-bc08-8205af175cab",
+                    "leftValue": "={{ $json.risk_score }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    },
+                    "rightValue": 25
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Low"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "f773fa14-d927-46c8-9af7-1137d7cdf8ea",
+      "name": "SLA 24h",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1340,
+        160
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "49c2ec38-7809-4d00-bc5e-40b1aa494ac0",
+              "name": "priority",
+              "value": "high",
+              "type": "string"
+            },
+            {
+              "id": "a9fa8f7c-d3df-423c-85c4-2bb8c7e6947b",
+              "name": "sla_hours",
+              "value": "24",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "478f9101-5c44-4d8f-af9d-af482505dad6",
+      "name": "SLA 72h",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1340,
+        360
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "78a23726-90f7-4fc7-92fa-1ed59a8e87d6",
+              "name": "priority",
+              "value": "medium",
+              "type": "string"
+            },
+            {
+              "id": "dc48992c-4502-42e0-a7c4-f02f5f8e488e",
+              "name": "sla_hours",
+              "value": "72",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "fb8e0c64-1611-41df-81a4-33ede69c9e0a",
+      "name": "SLA 120h",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1340,
+        560
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bcd9821d-ef2e-465d-956b-127520e2f6dc",
+              "name": "priority",
+              "value": "low",
+              "type": "string"
+            },
+            {
+              "id": "8cc6b13e-2e67-405e-94e0-ba57cb87e909",
+              "name": "sla_hours",
+              "value": "120",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "926205ba-91da-49da-a5e0-1b1dca861fce",
+      "name": "Join priorities",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1580,
+        360
+      ],
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 3
+      }
+    },
+    {
+      "id": "23a1e513-802a-41be-a461-657fb816437e",
+      "name": "Compute due date",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        360
+      ],
+      "parameters": {
+        "operation": "addToDate",
+        "magnitude": "={{ $json.received_at }}",
+        "timeUnit": "hours",
+        "duration": "={{ $json.sla_hours }}",
+        "outputFieldName": "sla_due",
+        "options": {
+          "includeInputFields": true
+        }
+      }
+    },
+    {
+      "id": "c24a6250-06bb-46e8-a3d1-197039dc8755",
+      "name": "Engine output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2020,
+        360
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "adfbb5fb-74ff-484e-8889-369000cb0bf1",
+              "name": "sla_due",
+              "value": "={{ DateTime.fromISO($json.sla_due).toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "When called by intake": {
+      "main": [
+        [
+          {
+            "node": "Risk factors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Risk factors": {
+      "main": [
+        [
+          {
+            "node": "Risk score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Risk score": {
+      "main": [
+        [
+          {
+            "node": "Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Priority": {
+      "main": [
+        [
+          {
+            "node": "SLA 24h",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SLA 72h",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SLA 120h",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SLA 24h": {
+      "main": [
+        [
+          {
+            "node": "Join priorities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SLA 72h": {
+      "main": [
+        [
+          {
+            "node": "Join priorities",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "SLA 120h": {
+      "main": [
+        [
+          {
+            "node": "Join priorities",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Join priorities": {
+      "main": [
+        [
+          {
+            "node": "Compute due date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute due date": {
+      "main": [
+        [
+          {
+            "node": "Engine output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Europe/Warsaw",
+    "errorWorkflow": "82e5226a-ec9b-45a2-abc5-5c603a205007",
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveDataSuccessExecution": "all"
+  }
+}

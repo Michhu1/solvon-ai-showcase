@@ -10,3 +10,5 @@ claims-assistant/traces/
 claims-assistant/audit/
 claims-assistant/var/
 claims-assistant/eval-report.txt
+automations/.env.local
+automations/out/

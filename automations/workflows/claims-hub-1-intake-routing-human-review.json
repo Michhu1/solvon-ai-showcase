@@ -1,0 +1,2239 @@
+{
+  "name": "Claims Hub · 1 · Intake, routing & human review",
+  "nodes": [
+    {
+      "id": "b279a788-95fd-46c6-ae0e-71022a44c63c",
+      "name": "Section · 1 · Intake",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "content": "## 1 · Intake\n`POST /webhook/claims-hub/intake`\nAI triage result from the claims assistant.",
+        "width": 400,
+        "height": 1460,
+        "color": 7
+      }
+    },
+    {
+      "id": "2aef8706-9603-43b6-a8a8-88982e8b0920",
+      "name": "Section · 2 · Validate",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        420,
+        0
+      ],
+      "parameters": {
+        "content": "## 2 · Validate\nSchema check, sanity check, duplicate check.\nBad input -> 422, duplicate -> 409, impossible amount -> error workflow.",
+        "width": 900,
+        "height": 1460,
+        "color": 3
+      }
+    },
+    {
+      "id": "232239df-50e8-4cf8-bbeb-4c1c3c5292a6",
+      "name": "Section · 3 · Enrich",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        0
+      ],
+      "parameters": {
+        "content": "## 3 · Enrich\nSub-workflow **Risk & SLA engine**: risk score, priority, due date.",
+        "width": 700,
+        "height": 1460,
+        "color": 6
+      }
+    },
+    {
+      "id": "fe09dc69-69b3-4c19-9932-486d75a44ee1",
+      "name": "Section · 4 · Router",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2060,
+        0
+      ],
+      "parameters": {
+        "content": "## 4 · Router\nOne lane per recommended next step.",
+        "width": 300,
+        "height": 1460,
+        "color": 1
+      }
+    },
+    {
+      "id": "636c63a0-0464-4b1f-ac6d-59347f0e3a2d",
+      "name": "Section · Lane A · Fast track",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2380,
+        0
+      ],
+      "parameters": {
+        "content": "## Lane A · Fast track\nSmall, low-risk, covered claims are queued for payout.\nAnything else falls back to an adjuster.",
+        "width": 1180,
+        "height": 300,
+        "color": 4
+      }
+    },
+    {
+      "id": "290e178a-b561-4a7e-abe4-3a576a24c48c",
+      "name": "Section · Lane B · Adjuster",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2380,
+        320
+      ],
+      "parameters": {
+        "content": "## Lane B · Adjuster\nSub-workflow **Assign adjuster** (round robin), task + notification.",
+        "width": 1440,
+        "height": 300,
+        "color": 5
+      }
+    },
+    {
+      "id": "39deae56-b0a8-4a85-91e6-111c9b348c2f",
+      "name": "Section · Lane C · Missing information",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2380,
+        640
+      ],
+      "parameters": {
+        "content": "## Lane C · Missing information\nRespond now, then **wait** until the customer completes a form.",
+        "width": 1620,
+        "height": 300,
+        "color": 2
+      }
+    },
+    {
+      "id": "9cb6265d-d2cf-4bfc-967a-9cd6ae13a214",
+      "name": "Section · Lane D · Possible exclusion -> human decision",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2380,
+        960
+      ],
+      "parameters": {
+        "content": "## Lane D · Possible exclusion -> human decision\nThe AI never rejects. A handler decides in a form; the execution waits.",
+        "width": 2280,
+        "height": 480,
+        "color": 3
+      }
+    },
+    {
+      "id": "50d34361-da5e-471a-8077-f07a1ecd4ace",
+      "name": "Section · 5 · Close",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3840,
+        0
+      ],
+      "parameters": {
+        "content": "## 5 · Close\nCollect lanes A+B, log, count time saved, respond 201.",
+        "width": 820,
+        "height": 620,
+        "color": 4
+      }
+    },
+    {
+      "id": "002d2d1f-06d2-445c-bc6e-4ed91f3ec369",
+      "name": "Claim from AI triage",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        120,
+        560
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "claims-hub/intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "da499e0c-94e4-473f-8430-280e959dba3c"
+    },
+    {
+      "id": "64557f30-69d7-4f39-8558-bc862c7abda0",
+      "name": "Normalize payload",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        560
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd9c0893-09c0-4b51-b6f2-65d99440e9f4",
+              "name": "claim_id",
+              "value": "={{ String($json.body.claim_id || '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "a8ad88e3-d58f-49d8-bd4b-cabc30035740",
+              "name": "policy_ref",
+              "value": "={{ $json.body.policy_ref || '[POLICY_NO]' }}",
+              "type": "string"
+            },
+            {
+              "id": "f6734cd4-9a7a-42c5-9e0e-11c9a2faaa04",
+              "name": "product",
+              "value": "={{ String($json.body.product || '').toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "98710c6d-e798-4e2d-8fef-ca93e0f072a7",
+              "name": "description",
+              "value": "={{ $json.body.description || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "487e5380-bc3a-4682-a1b2-1d2596be45ed",
+              "name": "channel",
+              "value": "={{ $json.body.channel || 'api' }}",
+              "type": "string"
+            },
+            {
+              "id": "753197c2-ff76-46e2-999c-722b099c23a0",
+              "name": "customer_email",
+              "value": "={{ $json.body.customer_email || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "ef258847-d011-4e96-b796-271bde0e8ac2",
+              "name": "category",
+              "value": "={{ $json.body.assessment.category }}",
+              "type": "string"
+            },
+            {
+              "id": "329b41b3-1772-446b-95cb-c5e7d507cf24",
+              "name": "next_step",
+              "value": "={{ $json.body.assessment.next_step }}",
+              "type": "string"
+            },
+            {
+              "id": "aad697ea-8802-4577-9fec-da95a7d8a7c2",
+              "name": "amount",
+              "value": "={{ Number($json.body.assessment.fields.claimed_amount ?? 0) }}",
+              "type": "number"
+            },
+            {
+              "id": "dbafb5c9-3d61-441d-b9dd-3108f0dd50f2",
+              "name": "payout",
+              "value": "={{ Number($json.body.assessment.estimated_payout ?? 0) }}",
+              "type": "number"
+            },
+            {
+              "id": "9f5a3cf4-469e-42fd-8292-64764ec51a64",
+              "name": "incident_date",
+              "value": "={{ $json.body.assessment.fields.incident_date || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "1a20972d-ecfe-400d-96ca-ddf33b630a4d",
+              "name": "citations",
+              "value": "={{ ($json.body.assessment.citations || []).map(c => c.clause).join(', ') }}",
+              "type": "string"
+            },
+            {
+              "id": "559d380e-9238-4137-b16e-05320317fd61",
+              "name": "received_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "0c8f62d6-f668-4f7d-ac58-3f4ae4b6fc27",
+      "name": "Payload valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        700,
+        560
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3122e91e-cfbc-4bc9-afb2-cf01b4cbd1c9",
+              "leftValue": "={{ $json.claim_id }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "rightValue": ""
+            },
+            {
+              "id": "87785e22-6866-4daf-9f96-1595f8c22478",
+              "leftValue": "={{ $json.product }}",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              },
+              "rightValue": "^(motor|home|travel)$"
+            },
+            {
+              "id": "6767fc7d-61e6-4413-afe7-2b85edd63545",
+              "leftValue": "={{ $json.next_step }}",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              },
+              "rightValue": "^(fast_track|assign_adjuster|request_information|review_possible_exclusion)$"
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "ab507b19-61fe-4ea5-96f0-c49f1c55a1bd",
+      "name": "422 body",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        920,
+        1100
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8f9c9b04-f39b-4af3-95e9-e1ae1c6eed84",
+              "name": "error",
+              "value": "Invalid claim payload",
+              "type": "string"
+            },
+            {
+              "id": "37a429de-1cd6-408b-95a4-18a2cb09d9dd",
+              "name": "hint",
+              "value": "claim_id, product (motor|home|travel) and assessment.next_step are required",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "c2882b05-11a6-414d-a43f-eaa7cf187a02",
+      "name": "Respond 422",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1140,
+        1100
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 422
+        }
+      }
+    },
+    {
+      "id": "3481d00d-2f89-495b-8f5e-209d33222e13",
+      "name": "Amount plausible?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        920,
+        560
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f36318f6-84ea-4ddc-b0b4-8d9566db7f5b",
+              "leftValue": "={{ $json.amount }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              },
+              "rightValue": 500000
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "8ee82026-7eb4-477e-b649-e4825bd5ec48",
+      "name": "Reject impossible amount",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1140,
+        820
+      ],
+      "parameters": {
+        "errorMessage": "=Claim {{ $json.claim_id }}: amount {{ $json.amount }} PLN is implausible"
+      }
+    },
+    {
+      "id": "6513a8b7-3948-447e-9861-71967de7c7b7",
+      "name": "Is duplicate?",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1140,
+        300
+      ],
+      "parameters": {
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "claim_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.claim_id }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "2d1383f3-11c0-48a9-aee0-7355539df887",
+      "name": "Respond 409",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1140,
+        120
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"Duplicate claim\", \"claim_id\": \"{{ $json.claim_id }}\" }",
+        "options": {
+          "responseCode": 409
+        }
+      }
+    },
+    {
+      "id": "b044e8b9-e6a9-48de-8529-50f89715f532",
+      "name": "Is new?",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1140,
+        560
+      ],
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "claim_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.claim_id }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "69424d9a-5ed1-4a99-a872-26599cfb2790",
+      "name": "Risk & SLA engine",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1420,
+        560
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8dc8d41a-a20b-4d04-9f65-bf79248961fa",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "2147bcc2-10e2-437c-82b9-667cc42912f2",
+      "name": "Readable dates",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        1640,
+        560
+      ],
+      "parameters": {
+        "operation": "formatDate",
+        "date": "={{ $json.sla_due }}",
+        "format": "custom",
+        "customFormat": "yyyy-MM-dd HH:mm",
+        "outputFieldName": "sla_due_text",
+        "options": {
+          "includeInputFields": true
+        }
+      }
+    },
+    {
+      "id": "5cc102bc-ca23-464f-89a6-6a4f891e0c98",
+      "name": "Route by next step",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        2160,
+        560
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7cae7faf-8913-4e0b-83e6-c18a651ee0bf",
+                    "leftValue": "={{ $json.next_step }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "fast_track"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Fast track"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c39705c5-908c-4f87-bd06-8243c8a8808e",
+                    "leftValue": "={{ $json.next_step }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "assign_adjuster"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Adjuster"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "29e5dca5-cf11-4f08-9562-1627a641c970",
+                    "leftValue": "={{ $json.next_step }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "request_information"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Missing info"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6a8d03b5-ef54-40d4-adc1-ac2fd896e910",
+                    "leftValue": "={{ $json.next_step }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "review_possible_exclusion"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Exclusion review"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "287efe7a-0114-408e-b02c-b13849f8f8f8",
+      "name": "Within auto limit?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        2440,
+        140
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c56c0b9b-0597-41b0-ae38-b054052cb452",
+              "leftValue": "={{ $json.payout }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              },
+              "rightValue": 5000
+            },
+            {
+              "id": "d3f9db33-6b37-4c0c-bec7-a5f466a04c4c",
+              "leftValue": "={{ $json.risk_score }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              },
+              "rightValue": 50
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "23fb0d7b-cfde-42c4-9b51-a0f9a17c35f9",
+      "name": "Mark approved",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2660,
+        80
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b760fba3-74ab-4189-8c9e-888832840d9b",
+              "name": "status",
+              "value": "approved_pending_payment",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "05cf6b4a-183d-436c-8d89-9e9b316db16c",
+      "name": "Queue payout",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2880,
+        80
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "claim_id": "={{ $json.claim_id }}",
+            "policy_ref": "={{ $json.policy_ref }}",
+            "product": "={{ $json.product }}",
+            "category": "={{ $json.category }}",
+            "next_step": "={{ $json.next_step }}",
+            "status": "={{ $json.status }}",
+            "priority": "={{ $json.priority }}",
+            "risk_score": "={{ $json.risk_score }}",
+            "amount": "={{ $json.amount }}",
+            "payout": "={{ $json.payout }}",
+            "incident_date": "={{ $json.incident_date || null }}",
+            "received_at": "={{ $json.received_at }}",
+            "sla_due": "={{ $json.sla_due }}",
+            "assignee": "={{ $json.assignee || '' }}",
+            "channel": "={{ $json.channel }}",
+            "customer_email": "={{ $json.customer_email || '' }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "2653d447-4645-4f55-aa25-b666fb63c62c",
+      "name": "Tell customer: approved",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3100,
+        80
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "email",
+            "recipient": "={{ $('Mark approved').item.json.customer_email || 'customer@example.com' }}",
+            "subject": "=Claim {{ $('Mark approved').item.json.claim_id }} approved",
+            "body": "=Estimated payout {{ $('Mark approved').item.json.payout }} PLN, paid within 3 days.",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "596c9757-76e3-4e28-8962-3d8e38255337",
+      "name": "Fast-track result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3320,
+        80
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7b010602-4e60-4c77-87cf-87b8e583e722",
+              "name": "claim_id",
+              "value": "={{ $('Mark approved').item.json.claim_id }}",
+              "type": "string"
+            },
+            {
+              "id": "339e8615-0135-48d7-8a34-1376453febbd",
+              "name": "status",
+              "value": "approved_pending_payment",
+              "type": "string"
+            },
+            {
+              "id": "e873742f-db1e-4ad5-9fcf-47fe7c160b3a",
+              "name": "payout",
+              "value": "={{ $('Mark approved').item.json.payout }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "2228eabd-24ba-4498-b398-48ef03afc01e",
+      "name": "Assign adjuster",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        2660,
+        460
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "c1f35269-bb8c-485d-8e89-db164375897f",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "f98bf2bf-bb29-4539-a76f-4f08af4530c8",
+      "name": "Mark assigned",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2880,
+        460
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "31b39cac-4785-425f-916b-56aeca26e62d",
+              "name": "status",
+              "value": "with_adjuster",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "5c582961-48ff-44ff-90c5-7fa3158423d0",
+      "name": "Save claim",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3100,
+        460
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "claim_id": "={{ $json.claim_id }}",
+            "policy_ref": "={{ $json.policy_ref }}",
+            "product": "={{ $json.product }}",
+            "category": "={{ $json.category }}",
+            "next_step": "={{ $json.next_step }}",
+            "status": "={{ $json.status }}",
+            "priority": "={{ $json.priority }}",
+            "risk_score": "={{ $json.risk_score }}",
+            "amount": "={{ $json.amount }}",
+            "payout": "={{ $json.payout }}",
+            "incident_date": "={{ $json.incident_date || null }}",
+            "received_at": "={{ $json.received_at }}",
+            "sla_due": "={{ $json.sla_due }}",
+            "assignee": "={{ $json.assignee || '' }}",
+            "channel": "={{ $json.channel }}",
+            "customer_email": "={{ $json.customer_email || '' }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "57942369-2337-4424-b5d7-f9d736385e3b",
+      "name": "Create task",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3320,
+        460
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ffd868d0-c40c-4534-8b19-b10807a6d00a",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "claim_id": "={{ $('Mark assigned').item.json.claim_id }}",
+            "type": "inspection",
+            "assignee": "={{ $('Mark assigned').item.json.assignee }}",
+            "due_at": "={{ $('Mark assigned').item.json.sla_due }}",
+            "status": "open",
+            "escalated": "={{ false }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c05b1b51-f5b4-46b2-8a9f-cfc86d49ea48",
+      "name": "Notify adjuster",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3540,
+        460
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "chat",
+            "recipient": "={{ $('Mark assigned').item.json.assignee }}",
+            "subject": "=New claim {{ $('Mark assigned').item.json.claim_id }} ({{ $('Mark assigned').item.json.priority }})",
+            "body": "={{ $('Mark assigned').item.json.category }}, due {{ $('Mark assigned').item.json.sla_due_text }}. Clauses: {{ $('Mark assigned').item.json.citations }}",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "6388ebe9-28c0-4845-8323-f8b29f1d4b4d",
+      "name": "Adjuster result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3760,
+        460
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "983ad8e8-a67a-4526-afe9-341c46c60f0c",
+              "name": "claim_id",
+              "value": "={{ $('Mark assigned').item.json.claim_id }}",
+              "type": "string"
+            },
+            {
+              "id": "09b31533-2f83-4aa7-9623-1137bef07768",
+              "name": "status",
+              "value": "with_adjuster",
+              "type": "string"
+            },
+            {
+              "id": "247ec361-ca16-4bbd-9105-c739c7083c6d",
+              "name": "assignee",
+              "value": "={{ $('Mark assigned').item.json.assignee }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "ef3c6d84-40c7-4f12-bd2c-544d2dcbec58",
+      "name": "Collect lanes",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3980,
+        260
+      ],
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 2
+      }
+    },
+    {
+      "id": "073bb2bd-3a6e-451a-8f3d-e676a9e989f9",
+      "name": "Log claim id",
+      "type": "n8n-nodes-base.executionData",
+      "typeVersion": 1.1,
+      "position": [
+        4200,
+        260
+      ],
+      "parameters": {
+        "dataToSave": {
+          "values": [
+            {
+              "key": "claim_id",
+              "value": "={{ $json.claim_id }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "55960399-6c2d-4100-acab-f164abb38ec0",
+      "name": "Count time saved",
+      "type": "n8n-nodes-base.timeSaved",
+      "typeVersion": 1,
+      "position": [
+        4420,
+        260
+      ],
+      "parameters": {
+        "mode": "perItem",
+        "minutesSaved": 12
+      }
+    },
+    {
+      "id": "6550df6c-788d-4a64-8b34-1f825afcea7a",
+      "name": "Respond 201",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        4420,
+        460
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, claim_id: $json.claim_id, status: $json.status, tracking: 'https://claims.example/track/' + $json.claim_id }) }}",
+        "options": {
+          "responseCode": 201
+        }
+      }
+    },
+    {
+      "id": "c27e126a-876d-4d5b-aaf3-4ceb5fd18ae6",
+      "name": "Mark waiting",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2440,
+        780
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d9b0ccf0-f30c-457b-ae80-c56fd7a05d04",
+              "name": "status",
+              "value": "waiting_for_customer",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "a0b81a12-6c0d-4c61-bbc3-d55069aa3d43",
+      "name": "Save waiting claim",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2660,
+        780
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "claim_id": "={{ $json.claim_id }}",
+            "policy_ref": "={{ $json.policy_ref }}",
+            "product": "={{ $json.product }}",
+            "category": "={{ $json.category }}",
+            "next_step": "={{ $json.next_step }}",
+            "status": "={{ $json.status }}",
+            "priority": "={{ $json.priority }}",
+            "risk_score": "={{ $json.risk_score }}",
+            "amount": "={{ $json.amount }}",
+            "payout": "={{ $json.payout }}",
+            "incident_date": "={{ $json.incident_date || null }}",
+            "received_at": "={{ $json.received_at }}",
+            "sla_due": "={{ $json.sla_due }}",
+            "assignee": "={{ $json.assignee || '' }}",
+            "channel": "={{ $json.channel }}",
+            "customer_email": "={{ $json.customer_email || '' }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e97bceb5-7d72-4d5f-90ce-7fe2bd6d2d81",
+      "name": "Respond 202 + form link",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2880,
+        780
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, claim_id: $('Mark waiting').item.json.claim_id, status: 'waiting_for_customer', form: $execution.resumeFormUrl }) }}",
+        "options": {
+          "responseCode": 202
+        }
+      }
+    },
+    {
+      "id": "c467bb06-5642-40f3-824b-115c0a79e417",
+      "name": "Ask customer for details",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3100,
+        780
+      ],
+      "parameters": {
+        "resume": "form",
+        "formTitle": "We need a few more details",
+        "formDescription": "Your claim is registered. Please confirm the date and the amount so we can continue.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Incident date",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Claimed amount (PLN)",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Anything else we should know?",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "webhookId": "31e121d2-fc28-4c0d-b96e-7c25c75fb6b9"
+    },
+    {
+      "id": "fbfb1a54-00ec-4c80-8c2a-a4d36b7bd328",
+      "name": "Merge answers",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3320,
+        780
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "01ef37dc-6ec4-47e0-97e8-8c7fb329a830",
+              "name": "claim_id",
+              "value": "={{ $('Mark waiting').item.json.claim_id }}",
+              "type": "string"
+            },
+            {
+              "id": "d13e5a56-3a41-4b29-9bc1-24a35f043d83",
+              "name": "amount",
+              "value": "={{ Number($json['Claimed amount (PLN)']) }}",
+              "type": "number"
+            },
+            {
+              "id": "4aaa06a0-6b5e-4931-b247-f9613b27e449",
+              "name": "incident_date",
+              "value": "={{ $json['Incident date'] }}",
+              "type": "string"
+            },
+            {
+              "id": "c567b006-0103-49a5-bb75-e26423adf532",
+              "name": "status",
+              "value": "ready_for_triage",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "860d36b0-c6ad-4ec4-849c-5895d6822f26",
+      "name": "Update claim",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3540,
+        780
+      ],
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "claim_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.claim_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "amount": "={{ $json.amount }}",
+            "incident_date": "={{ $json.incident_date }}",
+            "status": "={{ $json.status }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d5873fb2-a1fa-4adf-a02c-0ead71d256ec",
+      "name": "Notify handler: details in",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3760,
+        780
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "chat",
+            "recipient": "claims-desk",
+            "subject": "=Claim {{ $('Merge answers').item.json.claim_id }}: customer replied",
+            "body": "=Amount {{ $('Merge answers').item.json.amount }} PLN, date {{ $('Merge answers').item.json.incident_date }}. Ready for triage.",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9c9a5d02-8fdb-44d8-992e-8bb1b817a1b1",
+      "name": "Mark for review",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2440,
+        1180
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f9fd80b8-5c52-431c-89be-f3bb0d1533c1",
+              "name": "status",
+              "value": "pending_handler_review",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "c71b29bd-75d3-4ea0-a904-783f2b1c5da3",
+      "name": "Save claim for review",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2660,
+        1180
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "claim_id": "={{ $json.claim_id }}",
+            "policy_ref": "={{ $json.policy_ref }}",
+            "product": "={{ $json.product }}",
+            "category": "={{ $json.category }}",
+            "next_step": "={{ $json.next_step }}",
+            "status": "={{ $json.status }}",
+            "priority": "={{ $json.priority }}",
+            "risk_score": "={{ $json.risk_score }}",
+            "amount": "={{ $json.amount }}",
+            "payout": "={{ $json.payout }}",
+            "incident_date": "={{ $json.incident_date || null }}",
+            "received_at": "={{ $json.received_at }}",
+            "sla_due": "={{ $json.sla_due }}",
+            "assignee": "={{ $json.assignee || '' }}",
+            "channel": "={{ $json.channel }}",
+            "customer_email": "={{ $json.customer_email || '' }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5f6217ac-442f-4fe4-985b-bc4b3ab56c97",
+      "name": "Respond 202 review",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2880,
+        1180
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, claim_id: $('Mark for review').item.json.claim_id, status: 'pending_handler_review', review_form: $execution.resumeFormUrl }) }}",
+        "options": {
+          "responseCode": 202
+        }
+      }
+    },
+    {
+      "id": "77e97772-6090-4e76-8b90-b6d26cbf8b7b",
+      "name": "Handler decision",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3100,
+        1180
+      ],
+      "parameters": {
+        "resume": "form",
+        "formTitle": "Claim review: possible exclusion",
+        "formDescription": "=The assistant flagged a possible exclusion. Clauses: {{ $('Mark for review').item.json.citations }}",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Decision",
+              "fieldType": "dropdown",
+              "requiredField": true,
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Approve"
+                  },
+                  {
+                    "option": "Reject"
+                  },
+                  {
+                    "option": "Send to adjuster"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Note for the file",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "webhookId": "55444661-8cc4-4d23-b1d9-d3283d3d983f"
+    },
+    {
+      "id": "68256bca-1f15-438e-b323-81416dc0376e",
+      "name": "Which decision?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        3320,
+        1180
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "04f8c407-ef9a-4a69-8355-2bc52042f30e",
+                    "leftValue": "={{ $json.Decision }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "Approve"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Approve"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "92f9b425-d524-4a44-ba6e-e2153a3b7a16",
+                    "leftValue": "={{ $json.Decision }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "Reject"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Reject"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "10d0ca17-5448-4614-bb7e-6b24b14c8988",
+                    "leftValue": "={{ $json.Decision }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "Send to adjuster"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Adjuster"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "dfbbda25-76d2-4951-bad3-e0b9a88c4774",
+      "name": "Approved by handler",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3540,
+        1020
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7d54926a-2cc2-4e33-bd88-9d587f9cc798",
+              "name": "status",
+              "value": "approved_by_handler",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "aa64549f-9e14-4dea-9fa5-59c3e0e48b91",
+      "name": "Rejected by handler",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3540,
+        1180
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "900d101b-4467-49c2-b2c7-b1dc893f2f48",
+              "name": "status",
+              "value": "rejected_by_handler",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "09e79d05-146e-4398-ba18-741d6aff16f5",
+      "name": "Escalated to adjuster",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3540,
+        1340
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7a695846-5762-4d6f-90bb-ebfef188f573",
+              "name": "status",
+              "value": "with_adjuster",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "0fe5506d-e150-4da3-b5b4-b27376b9dbb7",
+      "name": "Join decisions",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3760,
+        1180
+      ],
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 3
+      }
+    },
+    {
+      "id": "bb86e5f0-270f-4e11-92dc-d5e58a857c35",
+      "name": "Record decision",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3980,
+        1180
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "f6ab611b-190c-4fb7-9ccb-dc93d6493b8b",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "claim_id": "={{ $('Mark for review').item.json.claim_id }}",
+            "decision": "={{ $json.Decision }}",
+            "note": "={{ $json['Note for the file'] }}",
+            "decided_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "383398a9-e9ae-4f09-a13e-b2d7457c4b42",
+      "name": "Update claim status",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4200,
+        1180
+      ],
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "claim_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Mark for review').item.json.claim_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "={{ $('Join decisions').item.json.status }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5268344e-695c-4600-b312-4841cd276167",
+      "name": "Tell customer: decision",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4420,
+        1180
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "email",
+            "recipient": "={{ $('Mark for review').item.json.customer_email || 'customer@example.com' }}",
+            "subject": "=Update on claim {{ $('Mark for review').item.json.claim_id }}",
+            "body": "=Status: {{ $('Join decisions').item.json.status }}",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Claim from AI triage": {
+      "main": [
+        [
+          {
+            "node": "Normalize payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize payload": {
+      "main": [
+        [
+          {
+            "node": "Payload valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload valid?": {
+      "main": [
+        [
+          {
+            "node": "Amount plausible?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "422 body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "422 body": {
+      "main": [
+        [
+          {
+            "node": "Respond 422",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Amount plausible?": {
+      "main": [
+        [
+          {
+            "node": "Is duplicate?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is new?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject impossible amount",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Respond 409",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is new?": {
+      "main": [
+        [
+          {
+            "node": "Risk & SLA engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Risk & SLA engine": {
+      "main": [
+        [
+          {
+            "node": "Readable dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Readable dates": {
+      "main": [
+        [
+          {
+            "node": "Route by next step",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by next step": {
+      "main": [
+        [
+          {
+            "node": "Within auto limit?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Assign adjuster",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark waiting",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark for review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Within auto limit?": {
+      "main": [
+        [
+          {
+            "node": "Mark approved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Assign adjuster",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark approved": {
+      "main": [
+        [
+          {
+            "node": "Queue payout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue payout": {
+      "main": [
+        [
+          {
+            "node": "Tell customer: approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tell customer: approved": {
+      "main": [
+        [
+          {
+            "node": "Fast-track result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assign adjuster": {
+      "main": [
+        [
+          {
+            "node": "Mark assigned",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark assigned": {
+      "main": [
+        [
+          {
+            "node": "Save claim",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save claim": {
+      "main": [
+        [
+          {
+            "node": "Create task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create task": {
+      "main": [
+        [
+          {
+            "node": "Notify adjuster",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify adjuster": {
+      "main": [
+        [
+          {
+            "node": "Adjuster result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fast-track result": {
+      "main": [
+        [
+          {
+            "node": "Collect lanes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adjuster result": {
+      "main": [
+        [
+          {
+            "node": "Collect lanes",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Collect lanes": {
+      "main": [
+        [
+          {
+            "node": "Log claim id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log claim id": {
+      "main": [
+        [
+          {
+            "node": "Count time saved",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond 201",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark waiting": {
+      "main": [
+        [
+          {
+            "node": "Save waiting claim",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save waiting claim": {
+      "main": [
+        [
+          {
+            "node": "Respond 202 + form link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond 202 + form link": {
+      "main": [
+        [
+          {
+            "node": "Ask customer for details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask customer for details": {
+      "main": [
+        [
+          {
+            "node": "Merge answers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge answers": {
+      "main": [
+        [
+          {
+            "node": "Update claim",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update claim": {
+      "main": [
+        [
+          {
+            "node": "Notify handler: details in",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark for review": {
+      "main": [
+        [
+          {
+            "node": "Save claim for review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save claim for review": {
+      "main": [
+        [
+          {
+            "node": "Respond 202 review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond 202 review": {
+      "main": [
+        [
+          {
+            "node": "Handler decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handler decision": {
+      "main": [
+        [
+          {
+            "node": "Which decision?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Which decision?": {
+      "main": [
+        [
+          {
+            "node": "Approved by handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rejected by handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Escalated to adjuster",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved by handler": {
+      "main": [
+        [
+          {
+            "node": "Join decisions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rejected by handler": {
+      "main": [
+        [
+          {
+            "node": "Join decisions",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Escalated to adjuster": {
+      "main": [
+        [
+          {
+            "node": "Join decisions",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Join decisions": {
+      "main": [
+        [
+          {
+            "node": "Record decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record decision": {
+      "main": [
+        [
+          {
+            "node": "Update claim status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update claim status": {
+      "main": [
+        [
+          {
+            "node": "Tell customer: decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Europe/Warsaw",
+    "errorWorkflow": "82e5226a-ec9b-45a2-abc5-5c603a205007",
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "timeSavedPerExecution": 12,
+    "saveDataSuccessExecution": "all"
+  }
+}

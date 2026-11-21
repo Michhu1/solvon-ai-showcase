@@ -1,0 +1,176 @@
+{
+  "name": "Claims Hub · 7 · Global error handler",
+  "nodes": [
+    {
+      "id": "28890d88-807b-4e5a-8df4-97c56f52f669",
+      "name": "Section · Incident capture",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        40,
+        120
+      ],
+      "parameters": {
+        "content": "## Incident capture\nEvery Claims Hub workflow points here as its **error workflow**.\nFailures are logged and on-call is alerted.",
+        "width": 960,
+        "height": 420,
+        "color": 3
+      }
+    },
+    {
+      "id": "3fe14c71-3bc7-4d11-8e9b-8acec701c6ed",
+      "name": "On workflow error",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "950cdfe8-0867-4c2b-b137-f49f6a4ba2cb",
+      "name": "Describe incident",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        300
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "26073e81-2332-4dd1-b248-171f35f0653d",
+              "name": "workflow",
+              "value": "={{ $json.workflow.name }}",
+              "type": "string"
+            },
+            {
+              "id": "708cd41a-0e95-4436-897d-a669a92468f0",
+              "name": "node",
+              "value": "={{ $json.execution.lastNodeExecuted }}",
+              "type": "string"
+            },
+            {
+              "id": "067cd7aa-20f3-47bd-8610-65e7b181bdfa",
+              "name": "message",
+              "value": "={{ $json.execution.error.message }}",
+              "type": "string"
+            },
+            {
+              "id": "f430da03-f0d4-4aef-8e3f-91e6d76917a3",
+              "name": "execution_id",
+              "value": "={{ $json.execution.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "e323a853-f73a-4315-a15b-6442efaacd58",
+      "name": "Log incident",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        540,
+        300
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "bf236599-1be7-4649-969f-cb2d1e9ee2dc",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "workflow": "={{ $json.workflow }}",
+            "node": "={{ $json.node }}",
+            "message": "={{ $json.message }}",
+            "execution_id": "={{ $json.execution_id }}",
+            "at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "451d5ef2-ee4b-49d8-996a-2c9fb554fb2a",
+      "name": "Alert on-call",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        300
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "pager",
+            "recipient": "on-call@claims.example",
+            "subject": "=Incident in {{ $('Describe incident').item.json.workflow }}",
+            "body": "={{ $('Describe incident').item.json.node }}: {{ $('Describe incident').item.json.message }}",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "On workflow error": {
+      "main": [
+        [
+          {
+            "node": "Describe incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Describe incident": {
+      "main": [
+        [
+          {
+            "node": "Log incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log incident": {
+      "main": [
+        [
+          {
+            "node": "Alert on-call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Europe/Warsaw",
+    "executionOrder": "v1"
+  }
+}
