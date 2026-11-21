@@ -2,7 +2,7 @@
   "name": "Claims Hub · 7 · Global error handler",
   "nodes": [
     {
-      "id": "28890d88-807b-4e5a-8df4-97c56f52f669",
+      "id": "9a795134-1f8e-4664-8f32-e1483a2e6c98",
       "name": "Section · Incident capture",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -18,7 +18,7 @@
       }
     },
     {
-      "id": "3fe14c71-3bc7-4d11-8e9b-8acec701c6ed",
+      "id": "161d9283-c1f3-44ad-82d6-17f61bb837f1",
       "name": "On workflow error",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
@@ -29,7 +29,7 @@
       "parameters": {}
     },
     {
-      "id": "950cdfe8-0867-4c2b-b137-f49f6a4ba2cb",
+      "id": "9220777a-6ce5-44b9-b16d-ff6a85ce28b2",
       "name": "Describe incident",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -42,25 +42,25 @@
         "assignments": {
           "assignments": [
             {
-              "id": "26073e81-2332-4dd1-b248-171f35f0653d",
+              "id": "75bc17f9-5ba0-4513-8f71-20b20848e8ed",
               "name": "workflow",
               "value": "={{ $json.workflow.name }}",
               "type": "string"
             },
             {
-              "id": "708cd41a-0e95-4436-897d-a669a92468f0",
+              "id": "aa9c635e-ac1b-40af-85dd-6db88cd1ce52",
               "name": "node",
               "value": "={{ $json.execution.lastNodeExecuted }}",
               "type": "string"
             },
             {
-              "id": "067cd7aa-20f3-47bd-8610-65e7b181bdfa",
+              "id": "ed341f1c-1ac9-4506-84b5-7636201ab866",
               "name": "message",
               "value": "={{ $json.execution.error.message }}",
               "type": "string"
             },
             {
-              "id": "f430da03-f0d4-4aef-8e3f-91e6d76917a3",
+              "id": "6249fea9-ab0e-4aa4-9b2c-b6dffee98963",
               "name": "execution_id",
               "value": "={{ $json.execution.id }}",
               "type": "string"
@@ -72,7 +72,7 @@
       }
     },
     {
-      "id": "e323a853-f73a-4315-a15b-6442efaacd58",
+      "id": "3cfa3ddb-ed8b-4bb6-bc00-dcaf6de95749",
       "name": "Log incident",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -84,7 +84,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "bf236599-1be7-4649-969f-cb2d1e9ee2dc",
+          "value": "082ca67c-28df-40e5-a25b-95dabf3b0680",
           "mode": "id"
         },
         "columns": {
@@ -103,7 +103,7 @@
       }
     },
     {
-      "id": "451d5ef2-ee4b-49d8-996a-2c9fb554fb2a",
+      "id": "7af5579c-f548-4ca0-9964-8903c17f2573",
       "name": "Alert on-call",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -115,7 +115,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "value": "f55276ac-a4f5-4fe2-babe-e8b4ef8b740b",
           "mode": "id"
         },
         "columns": {

@@ -2,7 +2,7 @@
 
 This repository has three parts:
 
-1. **[`automations/`](automations/)** — **Claims Operations Hub**: 7 connected workflows (99 nodes) built and run in
+1. **[`automations/`](automations/)** — **Claims Operations Hub**: 7 connected workflows (102 nodes) built and run in
    Solvon — webhooks, public forms, human-in-the-loop waits, sub-workflows, schedules, error handling, data tables.
 2. **[`claims-assistant/`](claims-assistant/)** — an open-source (MIT) Python demo written for this repo:
    a GenAI assistant that triages insurance claims, with RAG, an agent, evaluation and LLMOps. It feeds the hub.
@@ -192,7 +192,7 @@ The Solvon product itself — its source code, plans and design — is private a
 
 ## Po polsku
 
-**`automations/`** to „Claims Operations Hub” — 7 połączonych workflowów (99 węzłów) zbudowanych i uruchomionych
+**`automations/`** to „Claims Operations Hub” — 7 połączonych workflowów (102 węzłów) zbudowanych i uruchomionych
 w Solvonie: webhook z walidacją, router na 4 tory, formularze, na które wykonanie czeka (decyzja likwidatora,
 dane od klienta), podworkflowy, harmonogramy (eskalacja SLA, dzienne KPI), globalny workflow błędów i tabele danych.
 Cały system jest zapisany jako kod w Pythonie i wgrywany przez REST API Solvona.

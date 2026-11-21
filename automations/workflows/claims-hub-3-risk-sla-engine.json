@@ -2,7 +2,7 @@
   "name": "Claims Hub · 3 · Risk & SLA engine",
   "nodes": [
     {
-      "id": "befc82b6-3925-4a19-8b91-0a75a96ce70a",
+      "id": "5a231dba-e194-4316-97f0-af9001e86ff4",
       "name": "Section · Input",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -18,7 +18,7 @@
       }
     },
     {
-      "id": "2b55e366-65df-4a25-96f9-82c91ff25e6a",
+      "id": "9055bdf1-1f6e-44a4-ac77-16c4ccb0b70b",
       "name": "Section · Risk scoring",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -34,7 +34,7 @@
       }
     },
     {
-      "id": "397a07b4-0794-415b-88db-300e15c269f8",
+      "id": "5853763b-c39b-4369-b7c1-5f5e251d2f58",
       "name": "Section · Priority & SLA",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -50,7 +50,7 @@
       }
     },
     {
-      "id": "97e914ad-89eb-42ef-9dc8-974c1b286048",
+      "id": "7b1e9904-949d-4c21-a517-ff666a91f78b",
       "name": "When called by intake",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.3,
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "a91bdebe-9ce6-4533-b151-39285dc2bdd0",
+      "id": "a90cbaf3-a69e-42ea-af0c-2ed5f980595c",
       "name": "Risk factors",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -76,19 +76,19 @@
         "assignments": {
           "assignments": [
             {
-              "id": "b08f77ea-517f-4d11-a9c3-1546d898da27",
+              "id": "d0dabe0d-1188-44ab-9d9c-fa352198b0f4",
               "name": "amount_points",
               "value": "={{ $json.amount > 20000 ? 40 : ($json.amount > 5000 ? 20 : 5) }}",
               "type": "number"
             },
             {
-              "id": "afde1d8d-44f1-4b66-b735-db7742217e7f",
+              "id": "6b2c130f-ef8b-48ab-b3e9-0d6c7090ebe6",
               "name": "cause_points",
               "value": "={{ /theft|stolen|fire|burglar|break-in/i.test($json.description) ? 25 : 0 }}",
               "type": "number"
             },
             {
-              "id": "891222fa-b223-401c-94ad-825ab3e86ab9",
+              "id": "d0b865a4-4619-4d50-a96a-892db73972fd",
               "name": "late_points",
               "value": "={{ $json.incident_date && DateTime.fromISO($json.received_at).diff(DateTime.fromISO($json.incident_date), 'days').days > 14 ? 15 : 0 }}",
               "type": "number"
@@ -100,7 +100,7 @@
       }
     },
     {
-      "id": "8cb93a20-649a-4118-b185-d3f57b348337",
+      "id": "565ea290-f7ba-4c99-a426-4823914ca73a",
       "name": "Risk score",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -113,7 +113,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "d9cea679-3255-4db6-877c-7b093beb6365",
+              "id": "3e9000dd-1471-4470-8bd8-54ea76a110dc",
               "name": "risk_score",
               "value": "={{ $json.amount_points + $json.cause_points + $json.late_points }}",
               "type": "number"
@@ -125,7 +125,7 @@
       }
     },
     {
-      "id": "3436307b-3c3d-4a55-a962-717d590ac04c",
+      "id": "2b5cffb8-6293-44fc-aa90-1269a43f8244",
       "name": "Priority",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.5,
@@ -146,7 +146,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "17b29dd8-fb97-412c-8467-35abe9e4fd2a",
+                    "id": "9de7075e-2574-442e-9411-c116fc9e201b",
                     "leftValue": "={{ $json.risk_score }}",
                     "operator": {
                       "type": "number",
@@ -170,7 +170,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "785177cd-5488-42c0-b13f-3693f9d99821",
+                    "id": "e474e1c4-c8d5-451f-b063-f50b5deb3b67",
                     "leftValue": "={{ $json.risk_score }}",
                     "operator": {
                       "type": "number",
@@ -194,7 +194,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "8da2ccc0-ea1f-4617-bc08-8205af175cab",
+                    "id": "7332b28b-76b0-4945-ba9b-c90b21f89dfb",
                     "leftValue": "={{ $json.risk_score }}",
                     "operator": {
                       "type": "number",
@@ -214,7 +214,7 @@
       }
     },
     {
-      "id": "f773fa14-d927-46c8-9af7-1137d7cdf8ea",
+      "id": "97fb11e5-facb-44a4-869f-0b5e29c40228",
       "name": "SLA 24h",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -227,13 +227,13 @@
         "assignments": {
           "assignments": [
             {
-              "id": "49c2ec38-7809-4d00-bc5e-40b1aa494ac0",
+              "id": "7230050c-9889-401c-97cd-da4593af5c6b",
               "name": "priority",
               "value": "high",
               "type": "string"
             },
             {
-              "id": "a9fa8f7c-d3df-423c-85c4-2bb8c7e6947b",
+              "id": "97316f2e-0b7d-486e-be2b-9ee0f21bfe3d",
               "name": "sla_hours",
               "value": "24",
               "type": "number"
@@ -245,7 +245,7 @@
       }
     },
     {
-      "id": "478f9101-5c44-4d8f-af9d-af482505dad6",
+      "id": "371a55c0-5ac8-42b3-b54a-6d70fabb0eb7",
       "name": "SLA 72h",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -258,13 +258,13 @@
         "assignments": {
           "assignments": [
             {
-              "id": "78a23726-90f7-4fc7-92fa-1ed59a8e87d6",
+              "id": "567f872c-11b3-4504-9226-c14e5d5e03e0",
               "name": "priority",
               "value": "medium",
               "type": "string"
             },
             {
-              "id": "dc48992c-4502-42e0-a7c4-f02f5f8e488e",
+              "id": "ecb14de1-bf91-4cde-a3bb-27c533abd146",
               "name": "sla_hours",
               "value": "72",
               "type": "number"
@@ -276,7 +276,7 @@
       }
     },
     {
-      "id": "fb8e0c64-1611-41df-81a4-33ede69c9e0a",
+      "id": "b333eec3-373e-4fa1-a3f3-1ccee0c27680",
       "name": "SLA 120h",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -289,13 +289,13 @@
         "assignments": {
           "assignments": [
             {
-              "id": "bcd9821d-ef2e-465d-956b-127520e2f6dc",
+              "id": "4b6f6d64-75e2-425c-aa08-f8afc43f1610",
               "name": "priority",
               "value": "low",
               "type": "string"
             },
             {
-              "id": "8cc6b13e-2e67-405e-94e0-ba57cb87e909",
+              "id": "6b33c4e4-3d28-4611-a5ba-2e39cde036a7",
               "name": "sla_hours",
               "value": "120",
               "type": "number"
@@ -307,7 +307,7 @@
       }
     },
     {
-      "id": "926205ba-91da-49da-a5e0-1b1dca861fce",
+      "id": "16574d9b-2afd-47f0-a18b-610eaada0d77",
       "name": "Join priorities",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
@@ -321,7 +321,7 @@
       }
     },
     {
-      "id": "23a1e513-802a-41be-a461-657fb816437e",
+      "id": "5c7771cd-75a1-4f31-8d7b-a47bf471e0cb",
       "name": "Compute due date",
       "type": "n8n-nodes-base.dateTime",
       "typeVersion": 2,
@@ -341,7 +341,7 @@
       }
     },
     {
-      "id": "c24a6250-06bb-46e8-a3d1-197039dc8755",
+      "id": "36c1ed86-08da-4141-a983-dd7406b95cfd",
       "name": "Engine output",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -354,7 +354,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "adfbb5fb-74ff-484e-8889-369000cb0bf1",
+              "id": "e1d27d9e-8d11-4b9b-ad27-da2c3786abef",
               "name": "sla_due",
               "value": "={{ DateTime.fromISO($json.sla_due).toISO() }}",
               "type": "string"
@@ -483,7 +483,7 @@
   },
   "settings": {
     "timezone": "Europe/Warsaw",
-    "errorWorkflow": "82e5226a-ec9b-45a2-abc5-5c603a205007",
+    "errorWorkflow": "210cfa85-1e8d-4583-8501-b3520f677c81",
     "executionOrder": "v1",
     "saveExecutionProgress": true,
     "saveDataSuccessExecution": "all"

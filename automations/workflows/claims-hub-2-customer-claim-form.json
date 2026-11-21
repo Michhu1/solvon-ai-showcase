@@ -2,7 +2,7 @@
   "name": "Claims Hub · 2 · Customer claim form",
   "nodes": [
     {
-      "id": "c5b9ae50-a70c-42c1-be8d-aaf9be2560d5",
+      "id": "55c75450-ebca-45ae-9f63-85d1e6c37761",
       "name": "Section · Public form",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -18,7 +18,7 @@
       }
     },
     {
-      "id": "f03760e5-ec4d-4747-aef4-924347598073",
+      "id": "9709fd24-2312-4cbf-8981-cd5c06777669",
       "name": "Section · Shape & triage",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -34,7 +34,7 @@
       }
     },
     {
-      "id": "d299ef7d-ab8b-4b08-8454-f91a5000947a",
+      "id": "189f0dff-3dd4-4ff0-b8f2-665eedce8a4e",
       "name": "Section · Store, notify, confirm",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -50,7 +50,7 @@
       }
     },
     {
-      "id": "e0079ae6-44dc-455c-9162-0612d5893a4d",
+      "id": "0496e6d5-7c4e-49b8-bcaf-05cd6baed310",
       "name": "Claim form",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.6,
@@ -110,10 +110,10 @@
           "path": "claims-hub/report"
         }
       },
-      "webhookId": "da2b9e54-fc1c-414e-8793-bf445ec0709f"
+      "webhookId": "dfdbcad6-6978-4fec-8eaa-939125f66115"
     },
     {
-      "id": "9c7fc582-f6ed-4d7a-9ca7-fc45e0dfbb21",
+      "id": "bfadadd5-7fcb-441c-a1dd-6d7aaad2e44e",
       "name": "Map form to claim",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -126,67 +126,67 @@
         "assignments": {
           "assignments": [
             {
-              "id": "1fbdcb29-1ebd-48b9-88a9-fccb097458f9",
+              "id": "92af4dbd-4884-42c5-86d2-ef030e00f141",
               "name": "claim_id",
               "value": "={{ 'WEB-' + $execution.id }}",
               "type": "string"
             },
             {
-              "id": "fd6ceb70-367f-41bb-9565-8832e1c1dbae",
+              "id": "8a2ebb30-ac11-4b76-b5c4-085e9e84f059",
               "name": "policy_ref",
               "value": "[POLICY_NO]",
               "type": "string"
             },
             {
-              "id": "9f228aea-f6dc-496a-a8d8-12b71d8680d3",
+              "id": "29d4a2a0-0f86-452b-b9b9-359714ea8ec2",
               "name": "product",
               "value": "={{ $json.Product }}",
               "type": "string"
             },
             {
-              "id": "3b7c014b-c4ef-469c-a43a-dd433c15e024",
+              "id": "34fb0aff-4295-49f7-99ce-7e13d58efaa5",
               "name": "description",
               "value": "={{ $json['What happened?'] }}",
               "type": "string"
             },
             {
-              "id": "b3e78118-1640-4845-a5bc-62e99f00e518",
+              "id": "3057e256-e204-4b56-94ed-24d7cdacb8d6",
               "name": "amount",
               "value": "={{ Number($json['Claimed amount (PLN)'] || 0) }}",
               "type": "number"
             },
             {
-              "id": "c4503071-1783-445c-8266-715564c53c01",
+              "id": "805490d7-76eb-4c20-80fc-0e2e39555ee0",
               "name": "payout",
               "value": "0",
               "type": "number"
             },
             {
-              "id": "850442d5-83c7-499a-a47a-8853230944d4",
+              "id": "13199997-7026-4a02-904b-e34c43d566ce",
               "name": "incident_date",
               "value": "={{ $json['Incident date'] || '' }}",
               "type": "string"
             },
             {
-              "id": "90be9a40-b483-4375-bc88-2772c11dd6e3",
+              "id": "1fa9893e-09ce-451c-aade-656f13cb54ad",
               "name": "customer_email",
               "value": "={{ $json.Email }}",
               "type": "string"
             },
             {
-              "id": "efa1c778-dcd2-4690-977f-91bf80968d05",
+              "id": "e66f4ada-02b9-438d-a6f7-79dd861d7807",
               "name": "channel",
               "value": "web_form",
               "type": "string"
             },
             {
-              "id": "7085511d-d68b-48ae-83ef-451f06e6283f",
+              "id": "ee91b93a-24a9-4379-b28c-38f28b458f85",
               "name": "category",
               "value": "={{ $json.Product + '_unclassified' }}",
               "type": "string"
             },
             {
-              "id": "8745692d-90ff-4ed3-9c36-1beea241b049",
+              "id": "cb3ff0d3-ad02-4e2e-a048-7c2fd4fb9580",
               "name": "received_at",
               "value": "={{ $now.toISO() }}",
               "type": "string"
@@ -198,7 +198,7 @@
       }
     },
     {
-      "id": "beadb1b2-472c-4ec4-b707-0a9924769868",
+      "id": "b1012f8c-48ea-4932-8244-151474a8f578",
       "name": "Complete enough?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.4,
@@ -216,7 +216,7 @@
           },
           "conditions": [
             {
-              "id": "5dadbda0-6618-454d-a6cb-b0b9efe13a3a",
+              "id": "ca2d12c2-c1af-4000-ae23-d6d8e0e29c84",
               "leftValue": "={{ $json.amount }}",
               "operator": {
                 "type": "number",
@@ -225,7 +225,7 @@
               "rightValue": 0
             },
             {
-              "id": "3abfe7bb-38e5-4ae5-b938-6ad589df4ed0",
+              "id": "b4e27366-30bd-4b4c-8e73-7b152527f904",
               "leftValue": "={{ $json.incident_date }}",
               "operator": {
                 "type": "string",
@@ -242,7 +242,7 @@
       }
     },
     {
-      "id": "b0a90ef2-e19f-4cd1-9385-df45107af66b",
+      "id": "dc3b96fe-6f6a-4218-a745-31cf31dbb516",
       "name": "Needs adjuster",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -255,7 +255,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "388e469a-7957-40eb-976a-988ea33b3dd1",
+              "id": "bf3c652d-cb00-43ab-a716-b858175c305b",
               "name": "next_step",
               "value": "assign_adjuster",
               "type": "string"
@@ -267,7 +267,7 @@
       }
     },
     {
-      "id": "3d9fb890-d36e-4958-88db-6e154283a4d6",
+      "id": "4b78e0f7-1681-46ce-bd96-ae0d1e5208a6",
       "name": "Needs information",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -280,7 +280,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "900bd8a4-fcc9-41d7-961f-188113729f75",
+              "id": "5536f888-885b-4c00-90fb-620bc9fe9780",
               "name": "next_step",
               "value": "request_information",
               "type": "string"
@@ -292,7 +292,7 @@
       }
     },
     {
-      "id": "f7706814-3316-4329-b51c-3fe55d357ecb",
+      "id": "26f566db-f302-44e8-8c8a-1329ea11be91",
       "name": "Join",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
@@ -306,7 +306,7 @@
       }
     },
     {
-      "id": "ee0f4edd-ea50-458c-ab92-f74da31e6e13",
+      "id": "5b36b66b-f743-412e-98c8-0f0ebd2bb2d6",
       "name": "Risk & SLA engine",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -317,7 +317,7 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "8dc8d41a-a20b-4d04-9f65-bf79248961fa",
+          "value": "3a4679f6-0306-4cba-ac2a-a99ed50a89e7",
           "mode": "id"
         },
         "workflowInputs": {
@@ -335,7 +335,7 @@
       }
     },
     {
-      "id": "a5a3b786-c101-4d1e-8298-7b3102e34371",
+      "id": "c0cda14a-2912-4bdf-808f-a73b1af9d575",
       "name": "Mark received",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -348,7 +348,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "54df93d4-ae26-44e2-b63a-841b217a175f",
+              "id": "09825488-cc39-4a34-a854-249894f28e86",
               "name": "status",
               "value": "received_web",
               "type": "string"
@@ -360,7 +360,7 @@
       }
     },
     {
-      "id": "6a3899fa-201f-4e56-8430-39aba4cce6e1",
+      "id": "792c969b-b952-4e79-8c33-da7d0d008403",
       "name": "Save claim",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -372,7 +372,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "value": "df572166-809d-4d78-a523-6ab7e326142f",
           "mode": "id"
         },
         "columns": {
@@ -402,7 +402,7 @@
       }
     },
     {
-      "id": "344cc7d6-3307-46c4-abac-8614a06cb1a1",
+      "id": "56fd7443-7420-4444-a743-07040b7dfca6",
       "name": "Confirmation email",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -414,7 +414,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "value": "f55276ac-a4f5-4fe2-babe-e8b4ef8b740b",
           "mode": "id"
         },
         "columns": {
@@ -433,7 +433,7 @@
       }
     },
     {
-      "id": "a750d366-23b8-4ec3-bdab-49afc3bac510",
+      "id": "ce16594c-6b6f-4b86-bdd0-bcb2432b35bf",
       "name": "Thank-you page",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
@@ -447,7 +447,7 @@
         "completionMessage": "=Your claim number is {{ $('Mark received').item.json.claim_id }}. We sent a confirmation to {{ $('Mark received').item.json.customer_email }}.",
         "options": {}
       },
-      "webhookId": "8a89a3e1-b6f1-4aca-b2b7-95ec52f9524b"
+      "webhookId": "2cfac939-251e-46cc-8aba-621f1415be7d"
     }
   ],
   "connections": {
@@ -571,7 +571,7 @@
   },
   "settings": {
     "timezone": "Europe/Warsaw",
-    "errorWorkflow": "82e5226a-ec9b-45a2-abc5-5c603a205007",
+    "errorWorkflow": "210cfa85-1e8d-4583-8501-b3520f677c81",
     "executionOrder": "v1",
     "saveExecutionProgress": true,
     "saveDataSuccessExecution": "all"

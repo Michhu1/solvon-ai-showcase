@@ -4,7 +4,7 @@ The back office behind the [AI claims assistant](../claims-assistant/): the assi
 the business process around it — validation, routing, adjuster assignment, waiting for customers and handlers,
 SLA escalation, daily reporting and incident handling.
 
-**7 workflows · 99 working nodes · 25 node types · 7 data tables**, all running on a local Solvon instance and
+**7 workflows · 102 working nodes · 25 node types · 7 data tables**, all running on a local Solvon instance and
 driven by real traffic (see [Run it yourself](#run-it-yourself)).
 
 ![Main workflow: intake, validation, enrichment, router and four lanes](../docs/automations/hub-canvas.png)
@@ -41,7 +41,7 @@ flowchart LR
 
 | # | Workflow | Trigger | What it demonstrates |
 |---|---|---|---|
-| 1 | **Intake, routing & human review** (47 nodes) | Webhook `POST /webhook/claims-hub/intake` | Schema validation → `422`; duplicate check against a Data Table → `409`; implausible amount → `Stop and Error` → error workflow; enrichment through a sub-workflow; a `Switch` router with four lanes; `Respond to Webhook` with a tracking id; **two human-in-the-loop lanes** that answer `202` immediately and then **wait for a form** (customer details / handler decision) before continuing |
+| 1 | **Intake, routing & human review** (50 nodes) | Webhook `POST /webhook/claims-hub/intake` | Shared-secret header (`X-Hub-Token` vs. the project variable `HUB_TOKEN`) → `401`; schema and amount validation (`0 ≤ payout ≤ amount`, NaN rejected) → `422`; duplicate check against a Data Table → `409`; implausible amount → `Stop and Error` → error workflow; enrichment through a sub-workflow; a `Switch` router with four lanes; `Respond to Webhook` with a tracking id; **two human-in-the-loop lanes** that answer `202` immediately and then **wait for a form** (customer details / handler decision) before continuing |
 | 2 | **Customer claim form** | Public Form Trigger | Multi-field form, completeness check, same risk engine, confirmation page with the claim number |
 | 3 | **Risk & SLA engine** | Execute Workflow Trigger | Rule-based risk score with expressions (regex, Luxon date maths), priority `Switch`, SLA hours, due date with Date & Time |
 | 4 | **Assign adjuster** | Execute Workflow Trigger | Round robin: load active adjusters with the right skill, `Sort` by open tasks, `Limit 1`, book the workload, `Merge` the assignee back onto the claim |
@@ -59,8 +59,8 @@ from, so every notification is also auditable.
 The screenshots come from a real run, `traffic.py` + `resume.py` against a local instance:
 
 - **20 claims** triaged by the claims assistant and posted to the webhook → 7 fast track, 9 adjuster, 1 missing
-  information, 3 possible exclusions (+1 claim sent after a layout update);
-- **edge cases**: invalid payload → `422`, resent claim → `409`, a 9,000,000 PLN claim → error → incident logged by
+  information, 3 possible exclusions;
+- **edge cases**: no token → `401`, invalid payload or a negative amount → `422`, resent claim → `409`, a 9,000,000 PLN claim → error → incident logged by
   workflow 7;
 - **humans in the loop**: 3 handler decisions (reject / send to adjuster / approve) and 1 customer reply submitted
   through the waiting forms, after which the paused executions finished;
@@ -81,7 +81,8 @@ Needs a Solvon instance (the product is private) and Python 3.12 with `httpx` pl
 (`pip install -e claims-assistant`), which `traffic.py` uses to triage each claim:
 
 ```bash
-# automations/.env.local:  SOLVON_URL  SOLVON_API_KEY  SOLVON_EMAIL  SOLVON_PASSWORD
+# automations/.env.local:  SOLVON_URL  SOLVON_API_KEY  SOLVON_PROJECT_ID  SOLVON_EMAIL  SOLVON_PASSWORD
+# (deploy.py generates HUB_TOKEN on first run and stores it as a Solvon project variable)
 # (the e-mail/password are used by traffic.py to start the two scheduled workflows once)
 python automations/deploy.py              # create 7 tables + 7 workflows, publish, export JSON
 python automations/traffic.py             # AI-triaged claims, edge cases, backlog, scheduled runs
@@ -101,6 +102,10 @@ python automations/deploy.py --update     # re-render and PUT in place (keeps ex
   engine owns the process, the data and the waiting. The webhook is the contract between them.
 - **The AI never decides alone.** Possible exclusions always stop for a human, and the decision is recorded.
 - **Fail loudly.** Bad input gets a clear 4xx; anything unexpected goes to one error workflow and an incident row.
+- **Capabilities stay internal.** The intake webhook requires a shared secret (`X-Hub-Token`, checked against the
+  project variable `HUB_TOKEN`). A handler's review link resumes a paused execution, so it is never returned to the
+  caller — it goes to the internal claims desk through the outbox. The customer's own form link is returned,
+  because the caller passes it to that customer.
 
 <table>
   <tr>

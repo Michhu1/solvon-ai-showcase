@@ -2,7 +2,7 @@
   "name": "Claims Hub · 5 · SLA watchdog",
   "nodes": [
     {
-      "id": "d0f5b6b5-41cf-4d06-a3dc-288e499f9afb",
+      "id": "09ae09d1-3e6c-463c-9878-d41e003dc192",
       "name": "Section · Every hour",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -18,7 +18,7 @@
       }
     },
     {
-      "id": "a00e2042-8084-49ac-b940-44120e84840c",
+      "id": "0700be67-d4a1-446e-8040-6b6608055e88",
       "name": "Section · Escalate in batches",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -34,7 +34,7 @@
       }
     },
     {
-      "id": "b775ee5c-7194-4b1e-9c7c-82d62221ad84",
+      "id": "cddb339c-d25d-46de-88c2-db643759a623",
       "name": "Section · Digest",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -50,7 +50,7 @@
       }
     },
     {
-      "id": "048fc088-4260-4ad1-83b6-ff1073fcf785",
+      "id": "0bc33a3a-faf7-4f0d-b99e-fbe3488dfb5a",
       "name": "Every hour",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.4,
@@ -70,7 +70,7 @@
       }
     },
     {
-      "id": "99827154-d20d-4979-ac33-bb8f405a0f36",
+      "id": "b6e8721a-08de-44e4-9a92-89740c671087",
       "name": "Open tasks",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -82,7 +82,7 @@
         "operation": "get",
         "dataTableId": {
           "__rl": true,
-          "value": "ffd868d0-c40c-4534-8b19-b10807a6d00a",
+          "value": "0c8b81b9-39aa-4db2-a993-f1c6ff8ec3a7",
           "mode": "id"
         },
         "matchType": "allConditions",
@@ -104,7 +104,7 @@
       }
     },
     {
-      "id": "e85ebcad-a086-490d-825e-3a9bedef09a4",
+      "id": "5c09eecd-16ae-4aeb-9b02-54dc6c995c6e",
       "name": "Overdue only",
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.4,
@@ -122,7 +122,7 @@
           },
           "conditions": [
             {
-              "id": "0d94f3e6-9614-4db8-892d-cec035a818a7",
+              "id": "2897862c-a14f-4441-8690-a87729d752ad",
               "leftValue": "={{ $json.due_at }}",
               "operator": {
                 "type": "dateTime",
@@ -138,7 +138,7 @@
       }
     },
     {
-      "id": "f7f927af-e862-4848-b9f7-1971b91c61fe",
+      "id": "a7bd41d2-73d8-46de-9a92-09d647096f9f",
       "name": "Batches of 5",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
@@ -152,7 +152,7 @@
       }
     },
     {
-      "id": "a36a84c9-e5aa-487e-9494-889f6ab20015",
+      "id": "06b713b1-39b1-4a50-b371-bd1e1ab55094",
       "name": "Mark escalated",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -164,7 +164,7 @@
         "operation": "update",
         "dataTableId": {
           "__rl": true,
-          "value": "ffd868d0-c40c-4534-8b19-b10807a6d00a",
+          "value": "0c8b81b9-39aa-4db2-a993-f1c6ff8ec3a7",
           "mode": "id"
         },
         "matchType": "allConditions",
@@ -189,7 +189,7 @@
       }
     },
     {
-      "id": "438f4908-eeb2-4a7a-bdc4-9d5c6d186e09",
+      "id": "30b40566-547b-46f9-9151-84030d939b3d",
       "name": "Page team lead",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -201,7 +201,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "value": "f55276ac-a4f5-4fe2-babe-e8b4ef8b740b",
           "mode": "id"
         },
         "columns": {
@@ -220,7 +220,7 @@
       }
     },
     {
-      "id": "fe52f54e-8f4f-4c56-9478-61909de52ce7",
+      "id": "795c2b2c-b684-4509-8507-c90b29e7ce8d",
       "name": "Next batch",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
@@ -231,7 +231,7 @@
       "parameters": {}
     },
     {
-      "id": "24ea88d5-eb7f-4dcf-9026-37163ec18f4f",
+      "id": "a645f555-b816-4cb9-b47b-8ad91daa61ac",
       "name": "Count breaches",
       "type": "n8n-nodes-base.summarize",
       "typeVersion": 1.1,
@@ -252,7 +252,7 @@
       }
     },
     {
-      "id": "6d7e1c2c-b1d2-485f-8884-cfd41952de9d",
+      "id": "b450423c-bbb4-4245-8f95-95a861f3b17f",
       "name": "Send digest",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -264,7 +264,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "value": "f55276ac-a4f5-4fe2-babe-e8b4ef8b740b",
           "mode": "id"
         },
         "columns": {
@@ -382,7 +382,7 @@
   },
   "settings": {
     "timezone": "Europe/Warsaw",
-    "errorWorkflow": "82e5226a-ec9b-45a2-abc5-5c603a205007",
+    "errorWorkflow": "210cfa85-1e8d-4583-8501-b3520f677c81",
     "executionOrder": "v1",
     "saveExecutionProgress": true,
     "saveDataSuccessExecution": "all"

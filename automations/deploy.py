@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+import secrets
 import sys
 import time
 from pathlib import Path
@@ -93,6 +94,24 @@ def export(api: Api, workflow_ids: dict[str, str]) -> None:
         (out / f"{slug}.json").write_text(json.dumps(keep, indent=2, ensure_ascii=False) + "\n", "utf-8")
 
 
+def ensure_hub_token(api: Api, env: dict[str, str]) -> None:
+    """The intake webhook checks X-Hub-Token against the project variable HUB_TOKEN; keep both in sync."""
+    token = env.get("HUB_TOKEN") or secrets.token_urlsafe(24)
+    if "HUB_TOKEN" not in env:
+        with (HERE / ".env.local").open("a", encoding="utf-8") as f:
+            f.write(f"HUB_TOKEN={token}\n")
+        env["HUB_TOKEN"] = token
+    existing = [v for v in items(api("GET", "/variables")) if v["key"] == "HUB_TOKEN"]
+    if existing:
+        api("PUT", f"/variables/{existing[0]['id']}", json={"key": "HUB_TOKEN", "value": token})
+    else:
+        api(
+            "POST",
+            "/variables",
+            json={"key": "HUB_TOKEN", "value": token, "type": "string", "projectId": env["SOLVON_PROJECT_ID"]},
+        )
+
+
 def update_in_place(api: Api) -> None:
     """Re-render every workflow with the existing ids and PUT it (keeps executions, Insights and table data)."""
     ids = json.loads((HERE / "out" / "ids.json").read_text("utf-8"))
@@ -116,6 +135,7 @@ def update_in_place(api: Api) -> None:
 def main() -> int:
     env = load_env()
     api = Api(env["SOLVON_URL"], env["SOLVON_API_KEY"])
+    ensure_hub_token(api, env)
     if "--update" in sys.argv:
         update_in_place(api)
         return 0

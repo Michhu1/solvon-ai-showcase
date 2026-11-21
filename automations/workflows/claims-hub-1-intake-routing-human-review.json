@@ -2,7 +2,7 @@
   "name": "Claims Hub · 1 · Intake, routing & human review",
   "nodes": [
     {
-      "id": "b279a788-95fd-46c6-ae0e-71022a44c63c",
+      "id": "d86357c5-0f28-4b4c-bca7-4a7fea623394",
       "name": "Section · 1 · Intake",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -11,14 +11,14 @@
         0
       ],
       "parameters": {
-        "content": "## 1 · Intake\n`POST /webhook/claims-hub/intake`\nAI triage result from the claims assistant.",
+        "content": "## 1 · Intake\n`POST /webhook/claims-hub/intake`\nAI triage result; caller must send `X-Hub-Token` (else 401).",
         "width": 400,
         "height": 1460,
         "color": 7
       }
     },
     {
-      "id": "2aef8706-9603-43b6-a8a8-88982e8b0920",
+      "id": "646f6c97-e619-4ae1-b23a-d60b09152597",
       "name": "Section · 2 · Validate",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -34,7 +34,7 @@
       }
     },
     {
-      "id": "232239df-50e8-4cf8-bbeb-4c1c3c5292a6",
+      "id": "13525bc0-601c-4e27-af03-72ba4845493d",
       "name": "Section · 3 · Enrich",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -50,7 +50,7 @@
       }
     },
     {
-      "id": "fe09dc69-69b3-4c19-9932-486d75a44ee1",
+      "id": "dbf6b11f-76f6-4172-8d5f-c271105a0076",
       "name": "Section · 4 · Router",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -66,7 +66,7 @@
       }
     },
     {
-      "id": "636c63a0-0464-4b1f-ac6d-59347f0e3a2d",
+      "id": "016e2deb-090e-45b5-b439-229aa3e4d060",
       "name": "Section · Lane A · Fast track",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -82,7 +82,7 @@
       }
     },
     {
-      "id": "290e178a-b561-4a7e-abe4-3a576a24c48c",
+      "id": "0a81d877-4e98-4556-aa0f-befe2d949e31",
       "name": "Section · Lane B · Adjuster",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -98,7 +98,7 @@
       }
     },
     {
-      "id": "39deae56-b0a8-4a85-91e6-111c9b348c2f",
+      "id": "5443c883-29f0-4c9d-9e25-b52e986192d1",
       "name": "Section · Lane C · Missing information",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -114,7 +114,7 @@
       }
     },
     {
-      "id": "9cb6265d-d2cf-4bfc-967a-9cd6ae13a214",
+      "id": "fb3c7b39-8761-4267-8df4-5afc3639b531",
       "name": "Section · Lane D · Possible exclusion -> human decision",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -130,7 +130,7 @@
       }
     },
     {
-      "id": "50d34361-da5e-471a-8077-f07a1ecd4ace",
+      "id": "4b3ce170-e4ad-435e-8a87-4a97f3331b1a",
       "name": "Section · 5 · Close",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -146,12 +146,12 @@
       }
     },
     {
-      "id": "002d2d1f-06d2-445c-bc6e-4ed91f3ec369",
+      "id": "ac825147-0b86-43a6-8923-374090716592",
       "name": "Claim from AI triage",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.2,
       "position": [
-        120,
+        60,
         560
       ],
       "parameters": {
@@ -160,10 +160,61 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "webhookId": "da499e0c-94e4-473f-8430-280e959dba3c"
+      "webhookId": "4657284f-12f1-4067-9f1b-165225e9e922"
     },
     {
-      "id": "64557f30-69d7-4f39-8558-bc862c7abda0",
+      "id": "751a1958-272a-4727-9216-6d46424a7b6c",
+      "name": "Caller authorized?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        260,
+        560
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bcebbe72-5cb7-4d7d-8028-53ee6b17eaaf",
+              "leftValue": "={{ $json.headers['x-hub-token'] || '' }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "={{ $vars.HUB_TOKEN }}"
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "379ade76-21c0-4564-a4ea-49ff564ef5cf",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        260,
+        860
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"error\": \"Unauthorized\" }",
+        "options": {
+          "responseCode": 401
+        }
+      }
+    },
+    {
+      "id": "64741d92-a55c-4bc9-b719-06808f79fabf",
       "name": "Normalize payload",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -176,79 +227,79 @@
         "assignments": {
           "assignments": [
             {
-              "id": "bd9c0893-09c0-4b51-b6f2-65d99440e9f4",
+              "id": "2d6e0da3-e929-4766-9ab3-158571eafbc7",
               "name": "claim_id",
               "value": "={{ String($json.body.claim_id || '').trim() }}",
               "type": "string"
             },
             {
-              "id": "a8ad88e3-d58f-49d8-bd4b-cabc30035740",
+              "id": "22141888-3701-4ef7-8aa8-c13e74b97fdb",
               "name": "policy_ref",
               "value": "={{ $json.body.policy_ref || '[POLICY_NO]' }}",
               "type": "string"
             },
             {
-              "id": "f6734cd4-9a7a-42c5-9e0e-11c9a2faaa04",
+              "id": "75c8b853-c536-49b6-9d5e-e338676b9956",
               "name": "product",
               "value": "={{ String($json.body.product || '').toLowerCase() }}",
               "type": "string"
             },
             {
-              "id": "98710c6d-e798-4e2d-8fef-ca93e0f072a7",
+              "id": "c6501c42-df23-4e24-b889-7e082ed1dd58",
               "name": "description",
               "value": "={{ $json.body.description || '' }}",
               "type": "string"
             },
             {
-              "id": "487e5380-bc3a-4682-a1b2-1d2596be45ed",
+              "id": "d09d062a-d2a8-43d4-8fe8-9694aa2235e8",
               "name": "channel",
               "value": "={{ $json.body.channel || 'api' }}",
               "type": "string"
             },
             {
-              "id": "753197c2-ff76-46e2-999c-722b099c23a0",
+              "id": "e63024b7-dc70-4ec5-8b6f-b88068a819db",
               "name": "customer_email",
               "value": "={{ $json.body.customer_email || '' }}",
               "type": "string"
             },
             {
-              "id": "ef258847-d011-4e96-b796-271bde0e8ac2",
+              "id": "d31d05a9-25c6-477e-9acc-d732d4ce83a5",
               "name": "category",
               "value": "={{ $json.body.assessment.category }}",
               "type": "string"
             },
             {
-              "id": "329b41b3-1772-446b-95cb-c5e7d507cf24",
+              "id": "ba775855-701e-48d6-87ef-db41fb0109ed",
               "name": "next_step",
               "value": "={{ $json.body.assessment.next_step }}",
               "type": "string"
             },
             {
-              "id": "aad697ea-8802-4577-9fec-da95a7d8a7c2",
+              "id": "7b5e197d-84c8-47d4-aab8-da3d1a9d9f8d",
               "name": "amount",
               "value": "={{ Number($json.body.assessment.fields.claimed_amount ?? 0) }}",
               "type": "number"
             },
             {
-              "id": "dbafb5c9-3d61-441d-b9dd-3108f0dd50f2",
+              "id": "c564b5eb-81cc-4a1d-a594-5d1656fdafeb",
               "name": "payout",
               "value": "={{ Number($json.body.assessment.estimated_payout ?? 0) }}",
               "type": "number"
             },
             {
-              "id": "9f5a3cf4-469e-42fd-8292-64764ec51a64",
+              "id": "d8cd6a3d-9574-4848-9aaf-81c3911c5bac",
               "name": "incident_date",
               "value": "={{ $json.body.assessment.fields.incident_date || '' }}",
               "type": "string"
             },
             {
-              "id": "1a20972d-ecfe-400d-96ca-ddf33b630a4d",
+              "id": "ab954689-e21f-4502-86e6-ec36d997fe4d",
               "name": "citations",
               "value": "={{ ($json.body.assessment.citations || []).map(c => c.clause).join(', ') }}",
               "type": "string"
             },
             {
-              "id": "559d380e-9238-4137-b16e-05320317fd61",
+              "id": "3fabde52-aced-4490-89a8-ba973b4efdb6",
               "name": "received_at",
               "value": "={{ $now.toISO() }}",
               "type": "string"
@@ -260,7 +311,7 @@
       }
     },
     {
-      "id": "0c8f62d6-f668-4f7d-ac58-3f4ae4b6fc27",
+      "id": "c30c64f2-29f6-4916-ba53-d330cacc2699",
       "name": "Payload valid?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.4,
@@ -278,7 +329,7 @@
           },
           "conditions": [
             {
-              "id": "3122e91e-cfbc-4bc9-afb2-cf01b4cbd1c9",
+              "id": "238bb092-6c28-4c91-b8d9-575bfe884b0d",
               "leftValue": "={{ $json.claim_id }}",
               "operator": {
                 "type": "string",
@@ -288,7 +339,7 @@
               "rightValue": ""
             },
             {
-              "id": "87785e22-6866-4daf-9f96-1595f8c22478",
+              "id": "a2fce96a-31f5-4fae-b37f-cb79a6e713b9",
               "leftValue": "={{ $json.product }}",
               "operator": {
                 "type": "string",
@@ -297,13 +348,40 @@
               "rightValue": "^(motor|home|travel)$"
             },
             {
-              "id": "6767fc7d-61e6-4413-afe7-2b85edd63545",
+              "id": "2573192b-abcf-4283-aa85-9d709ce7d552",
               "leftValue": "={{ $json.next_step }}",
               "operator": {
                 "type": "string",
                 "operation": "regex"
               },
               "rightValue": "^(fast_track|assign_adjuster|request_information|review_possible_exclusion)$"
+            },
+            {
+              "id": "35914b7e-44a1-4549-9326-e8de26eb4f94",
+              "leftValue": "={{ $json.amount }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              },
+              "rightValue": 0
+            },
+            {
+              "id": "f2976310-f446-43c5-ae6c-54d7d10360ed",
+              "leftValue": "={{ $json.payout }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              },
+              "rightValue": 0
+            },
+            {
+              "id": "e8dadabb-b3c4-45d2-b12c-c3187984e112",
+              "leftValue": "={{ $json.payout }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              },
+              "rightValue": "={{ $json.amount }}"
             }
           ],
           "combinator": "and"
@@ -313,7 +391,7 @@
       }
     },
     {
-      "id": "ab507b19-61fe-4ea5-96f0-c49f1c55a1bd",
+      "id": "c026100f-e5a0-48c0-ac52-1a5ce088e590",
       "name": "422 body",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -326,15 +404,15 @@
         "assignments": {
           "assignments": [
             {
-              "id": "8f9c9b04-f39b-4af3-95e9-e1ae1c6eed84",
+              "id": "f6d231a4-b9ad-4ab9-ae35-96faa1b94f39",
               "name": "error",
               "value": "Invalid claim payload",
               "type": "string"
             },
             {
-              "id": "37a429de-1cd6-408b-95a4-18a2cb09d9dd",
+              "id": "4fee913b-21e2-44e9-a7ac-355197c1f6db",
               "name": "hint",
-              "value": "claim_id, product (motor|home|travel) and assessment.next_step are required",
+              "value": "claim_id, product (motor|home|travel), assessment.next_step required; 0 <= payout <= amount",
               "type": "string"
             }
           ]
@@ -344,7 +422,7 @@
       }
     },
     {
-      "id": "c2882b05-11a6-414d-a43f-eaa7cf187a02",
+      "id": "cd7855db-a41f-4989-a378-1c1713d6ebf2",
       "name": "Respond 422",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
@@ -361,7 +439,7 @@
       }
     },
     {
-      "id": "3481d00d-2f89-495b-8f5e-209d33222e13",
+      "id": "62f7332c-ed95-44b9-9cb3-a77c481edaf8",
       "name": "Amount plausible?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.4,
@@ -379,7 +457,7 @@
           },
           "conditions": [
             {
-              "id": "f36318f6-84ea-4ddc-b0b4-8d9566db7f5b",
+              "id": "72c42d9a-3d88-40f3-9d57-68196fa86205",
               "leftValue": "={{ $json.amount }}",
               "operator": {
                 "type": "number",
@@ -395,7 +473,7 @@
       }
     },
     {
-      "id": "8ee82026-7eb4-477e-b649-e4825bd5ec48",
+      "id": "6a413e4c-ed2f-41f7-9dcc-cf2756d16361",
       "name": "Reject impossible amount",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
@@ -408,7 +486,7 @@
       }
     },
     {
-      "id": "6513a8b7-3948-447e-9861-71967de7c7b7",
+      "id": "682f3b4c-b62b-4f64-8b61-6fbb53df1d6c",
       "name": "Is duplicate?",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -420,7 +498,7 @@
         "operation": "rowExists",
         "dataTableId": {
           "__rl": true,
-          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "value": "df572166-809d-4d78-a523-6ab7e326142f",
           "mode": "id"
         },
         "matchType": "allConditions",
@@ -437,7 +515,7 @@
       }
     },
     {
-      "id": "2d1383f3-11c0-48a9-aee0-7355539df887",
+      "id": "bb34736a-3133-4966-a217-141c73bcb3d1",
       "name": "Respond 409",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
@@ -454,7 +532,7 @@
       }
     },
     {
-      "id": "b044e8b9-e6a9-48de-8529-50f89715f532",
+      "id": "e195d875-c98b-471e-8641-4f2dc3ba14af",
       "name": "Is new?",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -466,7 +544,7 @@
         "operation": "rowNotExists",
         "dataTableId": {
           "__rl": true,
-          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "value": "df572166-809d-4d78-a523-6ab7e326142f",
           "mode": "id"
         },
         "matchType": "allConditions",
@@ -483,7 +561,7 @@
       }
     },
     {
-      "id": "69424d9a-5ed1-4a99-a872-26599cfb2790",
+      "id": "aa3b860d-5699-4d07-8df3-afc76b6cad6e",
       "name": "Risk & SLA engine",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -494,7 +572,7 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "8dc8d41a-a20b-4d04-9f65-bf79248961fa",
+          "value": "3a4679f6-0306-4cba-ac2a-a99ed50a89e7",
           "mode": "id"
         },
         "workflowInputs": {
@@ -512,7 +590,7 @@
       }
     },
     {
-      "id": "2147bcc2-10e2-437c-82b9-667cc42912f2",
+      "id": "b4935ad2-e016-44e2-b1ed-a34b819df3d7",
       "name": "Readable dates",
       "type": "n8n-nodes-base.dateTime",
       "typeVersion": 2,
@@ -532,7 +610,7 @@
       }
     },
     {
-      "id": "5cc102bc-ca23-464f-89a6-6a4f891e0c98",
+      "id": "72bb86b1-838d-4d4e-80d4-5b93fadce53f",
       "name": "Route by next step",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.5,
@@ -553,7 +631,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "7cae7faf-8913-4e0b-83e6-c18a651ee0bf",
+                    "id": "87b081ef-ef81-459f-9869-8568ccb58a54",
                     "leftValue": "={{ $json.next_step }}",
                     "operator": {
                       "type": "string",
@@ -577,7 +655,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "c39705c5-908c-4f87-bd06-8243c8a8808e",
+                    "id": "da90935f-fcbe-4b4c-a85c-9f9cdde10ee5",
                     "leftValue": "={{ $json.next_step }}",
                     "operator": {
                       "type": "string",
@@ -601,7 +679,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "29e5dca5-cf11-4f08-9562-1627a641c970",
+                    "id": "6124fb06-5ceb-43ef-8841-80e253b1d24d",
                     "leftValue": "={{ $json.next_step }}",
                     "operator": {
                       "type": "string",
@@ -625,7 +703,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "6a8d03b5-ef54-40d4-adc1-ac2fd896e910",
+                    "id": "6648c15d-f6bf-4ab7-8229-a0e14fa8e3ef",
                     "leftValue": "={{ $json.next_step }}",
                     "operator": {
                       "type": "string",
@@ -645,7 +723,7 @@
       }
     },
     {
-      "id": "287efe7a-0114-408e-b02c-b13849f8f8f8",
+      "id": "362bde3b-7e27-440f-8ef0-b7a9fb83ff40",
       "name": "Within auto limit?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.4,
@@ -663,7 +741,7 @@
           },
           "conditions": [
             {
-              "id": "c56c0b9b-0597-41b0-ae38-b054052cb452",
+              "id": "9d608dc6-1b23-4966-8306-ca48b371db4a",
               "leftValue": "={{ $json.payout }}",
               "operator": {
                 "type": "number",
@@ -672,7 +750,7 @@
               "rightValue": 5000
             },
             {
-              "id": "d3f9db33-6b37-4c0c-bec7-a5f466a04c4c",
+              "id": "9b589477-ecca-474a-9b44-96ed28b827e6",
               "leftValue": "={{ $json.risk_score }}",
               "operator": {
                 "type": "number",
@@ -688,7 +766,7 @@
       }
     },
     {
-      "id": "23fb0d7b-cfde-42c4-9b51-a0f9a17c35f9",
+      "id": "d56d03a8-a513-4459-a51f-9201ac235855",
       "name": "Mark approved",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -701,7 +779,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "b760fba3-74ab-4189-8c9e-888832840d9b",
+              "id": "af707a5c-3a04-4354-8032-81489b0f3ff6",
               "name": "status",
               "value": "approved_pending_payment",
               "type": "string"
@@ -713,7 +791,7 @@
       }
     },
     {
-      "id": "05cf6b4a-183d-436c-8d89-9e9b316db16c",
+      "id": "5f7c0649-92b5-4a4f-ba55-b93f9dc87231",
       "name": "Queue payout",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -725,7 +803,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "value": "df572166-809d-4d78-a523-6ab7e326142f",
           "mode": "id"
         },
         "columns": {
@@ -755,7 +833,7 @@
       }
     },
     {
-      "id": "2653d447-4645-4f55-aa25-b666fb63c62c",
+      "id": "cf124c04-de5e-4acd-92b3-d8a723e5f203",
       "name": "Tell customer: approved",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -767,7 +845,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "value": "f55276ac-a4f5-4fe2-babe-e8b4ef8b740b",
           "mode": "id"
         },
         "columns": {
@@ -786,7 +864,7 @@
       }
     },
     {
-      "id": "596c9757-76e3-4e28-8962-3d8e38255337",
+      "id": "32920b19-e06d-45f8-9ac3-18a936ff451e",
       "name": "Fast-track result",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -799,19 +877,19 @@
         "assignments": {
           "assignments": [
             {
-              "id": "7b010602-4e60-4c77-87cf-87b8e583e722",
+              "id": "5ac7eb77-f2c0-4e71-a48e-9f4f60f7d29d",
               "name": "claim_id",
               "value": "={{ $('Mark approved').item.json.claim_id }}",
               "type": "string"
             },
             {
-              "id": "339e8615-0135-48d7-8a34-1376453febbd",
+              "id": "3989dbaa-0fde-490e-9e78-a4de666834ce",
               "name": "status",
               "value": "approved_pending_payment",
               "type": "string"
             },
             {
-              "id": "e873742f-db1e-4ad5-9fcf-47fe7c160b3a",
+              "id": "37976f12-e6e0-4117-bebb-3e288307b31b",
               "name": "payout",
               "value": "={{ $('Mark approved').item.json.payout }}",
               "type": "number"
@@ -823,7 +901,7 @@
       }
     },
     {
-      "id": "2228eabd-24ba-4498-b398-48ef03afc01e",
+      "id": "1ea5a848-4b2d-4d32-ba97-63e222a945ba",
       "name": "Assign adjuster",
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
@@ -834,7 +912,7 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "c1f35269-bb8c-485d-8e89-db164375897f",
+          "value": "18c1cd51-2611-49d7-8c2d-10b3c4a96631",
           "mode": "id"
         },
         "workflowInputs": {
@@ -852,7 +930,7 @@
       }
     },
     {
-      "id": "f98bf2bf-bb29-4539-a76f-4f08af4530c8",
+      "id": "35b3128d-4c3c-4f4a-bedd-d9321037107e",
       "name": "Mark assigned",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -865,7 +943,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "31b39cac-4785-425f-916b-56aeca26e62d",
+              "id": "c5703891-a5a4-4ff0-bfee-5b941e71894d",
               "name": "status",
               "value": "with_adjuster",
               "type": "string"
@@ -877,7 +955,7 @@
       }
     },
     {
-      "id": "5c582961-48ff-44ff-90c5-7fa3158423d0",
+      "id": "11a7610f-036b-4095-929c-0e635ff27cac",
       "name": "Save claim",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -889,7 +967,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "value": "df572166-809d-4d78-a523-6ab7e326142f",
           "mode": "id"
         },
         "columns": {
@@ -919,7 +997,7 @@
       }
     },
     {
-      "id": "57942369-2337-4424-b5d7-f9d736385e3b",
+      "id": "049ba57d-5125-4760-b625-600f1063e8f0",
       "name": "Create task",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -931,7 +1009,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "ffd868d0-c40c-4534-8b19-b10807a6d00a",
+          "value": "0c8b81b9-39aa-4db2-a993-f1c6ff8ec3a7",
           "mode": "id"
         },
         "columns": {
@@ -951,7 +1029,7 @@
       }
     },
     {
-      "id": "c05b1b51-f5b4-46b2-8a9f-cfc86d49ea48",
+      "id": "b103cc41-1cff-4e46-a2bd-0b62eb5b866d",
       "name": "Notify adjuster",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -963,7 +1041,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "value": "f55276ac-a4f5-4fe2-babe-e8b4ef8b740b",
           "mode": "id"
         },
         "columns": {
@@ -982,7 +1060,7 @@
       }
     },
     {
-      "id": "6388ebe9-28c0-4845-8323-f8b29f1d4b4d",
+      "id": "cccc002d-c4e6-4cf0-8991-6e19089e1b83",
       "name": "Adjuster result",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -995,19 +1073,19 @@
         "assignments": {
           "assignments": [
             {
-              "id": "983ad8e8-a67a-4526-afe9-341c46c60f0c",
+              "id": "7c3410a1-a304-4e1a-9db4-ee32abe5a5d2",
               "name": "claim_id",
               "value": "={{ $('Mark assigned').item.json.claim_id }}",
               "type": "string"
             },
             {
-              "id": "09b31533-2f83-4aa7-9623-1137bef07768",
+              "id": "9844e365-a630-45ae-918b-bdefbc6fc9f1",
               "name": "status",
               "value": "with_adjuster",
               "type": "string"
             },
             {
-              "id": "247ec361-ca16-4bbd-9105-c739c7083c6d",
+              "id": "62d8d1ca-0094-4d7b-946a-1af40fbabf52",
               "name": "assignee",
               "value": "={{ $('Mark assigned').item.json.assignee }}",
               "type": "string"
@@ -1019,7 +1097,7 @@
       }
     },
     {
-      "id": "ef3c6d84-40c7-4f12-bd2c-544d2dcbec58",
+      "id": "b4aff058-5aa2-44f9-85dd-89a79535716e",
       "name": "Collect lanes",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
@@ -1033,7 +1111,7 @@
       }
     },
     {
-      "id": "073bb2bd-3a6e-451a-8f3d-e676a9e989f9",
+      "id": "3b885bd1-1bfb-4a1b-bbfe-3a9bb0dbe15a",
       "name": "Log claim id",
       "type": "n8n-nodes-base.executionData",
       "typeVersion": 1.1,
@@ -1053,7 +1131,7 @@
       }
     },
     {
-      "id": "55960399-6c2d-4100-acab-f164abb38ec0",
+      "id": "f281935b-2f19-4474-a764-57da0fac3e1c",
       "name": "Count time saved",
       "type": "n8n-nodes-base.timeSaved",
       "typeVersion": 1,
@@ -1067,7 +1145,7 @@
       }
     },
     {
-      "id": "6550df6c-788d-4a64-8b34-1f825afcea7a",
+      "id": "643b4820-dd2f-4b0e-b418-de9f8cdb0003",
       "name": "Respond 201",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
@@ -1084,7 +1162,7 @@
       }
     },
     {
-      "id": "c27e126a-876d-4d5b-aaf3-4ceb5fd18ae6",
+      "id": "4d0e8d0a-7900-4d0a-8c8b-57512bac6ac0",
       "name": "Mark waiting",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -1097,7 +1175,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "d9b0ccf0-f30c-457b-ae80-c56fd7a05d04",
+              "id": "714770ed-e179-40ed-9bec-1bfbb36e744b",
               "name": "status",
               "value": "waiting_for_customer",
               "type": "string"
@@ -1109,7 +1187,7 @@
       }
     },
     {
-      "id": "a0b81a12-6c0d-4c61-bbc3-d55069aa3d43",
+      "id": "7409736b-5d0e-46c1-aa7e-6f1762c69c81",
       "name": "Save waiting claim",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -1121,7 +1199,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "value": "df572166-809d-4d78-a523-6ab7e326142f",
           "mode": "id"
         },
         "columns": {
@@ -1151,7 +1229,7 @@
       }
     },
     {
-      "id": "e97bceb5-7d72-4d5f-90ce-7fe2bd6d2d81",
+      "id": "e5a0d74f-8178-49e8-b7c0-1a5c2b50cd90",
       "name": "Respond 202 + form link",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
@@ -1168,7 +1246,7 @@
       }
     },
     {
-      "id": "c467bb06-5642-40f3-824b-115c0a79e417",
+      "id": "6cef80b6-3a01-4482-8da5-ae6d0ee3f1de",
       "name": "Ask customer for details",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -1200,10 +1278,10 @@
         },
         "options": {}
       },
-      "webhookId": "31e121d2-fc28-4c0d-b96e-7c25c75fb6b9"
+      "webhookId": "dfe4cb3f-d7c8-4217-8873-428a270f32d7"
     },
     {
-      "id": "fbfb1a54-00ec-4c80-8c2a-a4d36b7bd328",
+      "id": "9333d81a-9bf3-404b-8d0b-65e2beadd67f",
       "name": "Merge answers",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -1216,25 +1294,25 @@
         "assignments": {
           "assignments": [
             {
-              "id": "01ef37dc-6ec4-47e0-97e8-8c7fb329a830",
+              "id": "b04c8cb5-55a0-45a0-8c6d-4f7bc02dc0ab",
               "name": "claim_id",
               "value": "={{ $('Mark waiting').item.json.claim_id }}",
               "type": "string"
             },
             {
-              "id": "d13e5a56-3a41-4b29-9bc1-24a35f043d83",
+              "id": "06a3e0f7-dc25-4dd5-8e89-c57044c54063",
               "name": "amount",
               "value": "={{ Number($json['Claimed amount (PLN)']) }}",
               "type": "number"
             },
             {
-              "id": "4aaa06a0-6b5e-4931-b247-f9613b27e449",
+              "id": "2834deba-f267-4c0b-8466-5f8f37cbd07e",
               "name": "incident_date",
               "value": "={{ $json['Incident date'] }}",
               "type": "string"
             },
             {
-              "id": "c567b006-0103-49a5-bb75-e26423adf532",
+              "id": "acf202fd-b915-4a6a-ac0c-19fe3cbd80b8",
               "name": "status",
               "value": "ready_for_triage",
               "type": "string"
@@ -1246,7 +1324,7 @@
       }
     },
     {
-      "id": "860d36b0-c6ad-4ec4-849c-5895d6822f26",
+      "id": "bab9022f-71d8-4a30-be40-f093aa341e30",
       "name": "Update claim",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -1258,7 +1336,7 @@
         "operation": "update",
         "dataTableId": {
           "__rl": true,
-          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "value": "df572166-809d-4d78-a523-6ab7e326142f",
           "mode": "id"
         },
         "matchType": "allConditions",
@@ -1285,7 +1363,7 @@
       }
     },
     {
-      "id": "d5873fb2-a1fa-4adf-a02c-0ead71d256ec",
+      "id": "72d29f10-7e70-4b8a-9877-af1dbaf06d05",
       "name": "Notify handler: details in",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -1297,7 +1375,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "value": "f55276ac-a4f5-4fe2-babe-e8b4ef8b740b",
           "mode": "id"
         },
         "columns": {
@@ -1316,7 +1394,7 @@
       }
     },
     {
-      "id": "9c9a5d02-8fdb-44d8-992e-8bb1b817a1b1",
+      "id": "7203a22b-57a6-4017-b0de-6c61d37de69d",
       "name": "Mark for review",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -1329,7 +1407,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "f9fd80b8-5c52-431c-89be-f3bb0d1533c1",
+              "id": "a8a49502-b1ed-4053-9b10-a43d7c68afb3",
               "name": "status",
               "value": "pending_handler_review",
               "type": "string"
@@ -1341,7 +1419,7 @@
       }
     },
     {
-      "id": "c71b29bd-75d3-4ea0-a904-783f2b1c5da3",
+      "id": "e8ff283c-00a9-4a89-8060-5ba1eaedacda",
       "name": "Save claim for review",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -1353,7 +1431,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "value": "df572166-809d-4d78-a523-6ab7e326142f",
           "mode": "id"
         },
         "columns": {
@@ -1383,7 +1461,7 @@
       }
     },
     {
-      "id": "5f6217ac-442f-4fe4-985b-bc4b3ab56c97",
+      "id": "c5aff41f-e078-4b86-9385-abf9d72341df",
       "name": "Respond 202 review",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
@@ -1393,14 +1471,45 @@
       ],
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ ok: true, claim_id: $('Mark for review').item.json.claim_id, status: 'pending_handler_review', review_form: $execution.resumeFormUrl }) }}",
+        "responseBody": "={{ JSON.stringify({ ok: true, claim_id: $('Mark for review').item.json.claim_id, status: 'pending_handler_review' }) }}",
         "options": {
           "responseCode": 202
         }
       }
     },
     {
-      "id": "77e97772-6090-4e76-8b90-b6d26cbf8b7b",
+      "id": "ff54cb7c-2158-450e-a034-3617dcf57899",
+      "name": "Send review link to desk",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2880,
+        1360
+      ],
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "f55276ac-a4f5-4fe2-babe-e8b4ef8b740b",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel": "internal",
+            "recipient": "claims-desk",
+            "subject": "=Review needed: claim {{ $('Mark for review').item.json.claim_id }}",
+            "body": "={{ $execution.resumeFormUrl }}",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e18b5fcf-5555-4b4c-a501-064e69949813",
       "name": "Handler decision",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -1441,10 +1550,10 @@
         },
         "options": {}
       },
-      "webhookId": "55444661-8cc4-4d23-b1d9-d3283d3d983f"
+      "webhookId": "a1d916b3-49d3-4d86-9b61-05833750cd08"
     },
     {
-      "id": "68256bca-1f15-438e-b323-81416dc0376e",
+      "id": "5a4fea5c-fc05-4934-9438-8bcd559d0836",
       "name": "Which decision?",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.5,
@@ -1465,7 +1574,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "04f8c407-ef9a-4a69-8355-2bc52042f30e",
+                    "id": "13d2391d-e4ce-4558-93fc-e8418b08b7ec",
                     "leftValue": "={{ $json.Decision }}",
                     "operator": {
                       "type": "string",
@@ -1489,7 +1598,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "92f9b425-d524-4a44-ba6e-e2153a3b7a16",
+                    "id": "0fe303e5-2eaa-42e8-b71a-9ff52bd08967",
                     "leftValue": "={{ $json.Decision }}",
                     "operator": {
                       "type": "string",
@@ -1513,7 +1622,7 @@
                 },
                 "conditions": [
                   {
-                    "id": "10d0ca17-5448-4614-bb7e-6b24b14c8988",
+                    "id": "f9e69b95-0eb0-4f7f-9c28-3febbd88b31a",
                     "leftValue": "={{ $json.Decision }}",
                     "operator": {
                       "type": "string",
@@ -1533,7 +1642,7 @@
       }
     },
     {
-      "id": "dfbbda25-76d2-4951-bad3-e0b9a88c4774",
+      "id": "b1f3a573-978f-4986-8504-e9d72a2a47b3",
       "name": "Approved by handler",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -1546,7 +1655,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "7d54926a-2cc2-4e33-bd88-9d587f9cc798",
+              "id": "9b8b3911-a568-43f7-a660-ef7b3dd5d379",
               "name": "status",
               "value": "approved_by_handler",
               "type": "string"
@@ -1558,7 +1667,7 @@
       }
     },
     {
-      "id": "aa64549f-9e14-4dea-9fa5-59c3e0e48b91",
+      "id": "d80f8fe6-daf6-4095-a72d-514c6038dcb3",
       "name": "Rejected by handler",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -1571,7 +1680,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "900d101b-4467-49c2-b2c7-b1dc893f2f48",
+              "id": "76b14802-4302-4ffb-be14-3029cb501634",
               "name": "status",
               "value": "rejected_by_handler",
               "type": "string"
@@ -1583,7 +1692,7 @@
       }
     },
     {
-      "id": "09e79d05-146e-4398-ba18-741d6aff16f5",
+      "id": "2115a67f-bb79-4e45-9a84-7683b3f68c04",
       "name": "Escalated to adjuster",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -1596,7 +1705,7 @@
         "assignments": {
           "assignments": [
             {
-              "id": "7a695846-5762-4d6f-90bb-ebfef188f573",
+              "id": "bb8f67c6-c86a-4220-b4cc-732e4426b6b6",
               "name": "status",
               "value": "with_adjuster",
               "type": "string"
@@ -1608,7 +1717,7 @@
       }
     },
     {
-      "id": "0fe5506d-e150-4da3-b5b4-b27376b9dbb7",
+      "id": "ca11b4f9-bc06-4665-a1d8-d5716ce9adc6",
       "name": "Join decisions",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
@@ -1622,7 +1731,7 @@
       }
     },
     {
-      "id": "bb86e5f0-270f-4e11-92dc-d5e58a857c35",
+      "id": "33cca836-75a7-4e23-a29d-1ba523f895ad",
       "name": "Record decision",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -1634,7 +1743,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "f6ab611b-190c-4fb7-9ccb-dc93d6493b8b",
+          "value": "7ddd9970-a732-4b24-b324-58ee96dda3bf",
           "mode": "id"
         },
         "columns": {
@@ -1652,7 +1761,7 @@
       }
     },
     {
-      "id": "383398a9-e9ae-4f09-a13e-b2d7457c4b42",
+      "id": "e751428b-252e-4b8b-aff9-8c3ee6427897",
       "name": "Update claim status",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -1664,7 +1773,7 @@
         "operation": "update",
         "dataTableId": {
           "__rl": true,
-          "value": "6fd387fc-7dad-4ddd-9fed-9afbadee50cd",
+          "value": "df572166-809d-4d78-a523-6ab7e326142f",
           "mode": "id"
         },
         "matchType": "allConditions",
@@ -1689,7 +1798,7 @@
       }
     },
     {
-      "id": "5268344e-695c-4600-b312-4841cd276167",
+      "id": "810edb99-d27b-40d9-8238-89a5b628a3a6",
       "name": "Tell customer: decision",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -1701,7 +1810,7 @@
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
-          "value": "4754ab27-e845-4e98-aca7-3886e7d65ba9",
+          "value": "f55276ac-a4f5-4fe2-babe-e8b4ef8b740b",
           "mode": "id"
         },
         "columns": {
@@ -1725,7 +1834,25 @@
       "main": [
         [
           {
+            "node": "Caller authorized?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Caller authorized?": {
+      "main": [
+        [
+          {
             "node": "Normalize payload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 401",
             "type": "main",
             "index": 0
           }
@@ -2118,6 +2245,17 @@
       "main": [
         [
           {
+            "node": "Send review link to desk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send review link to desk": {
+      "main": [
+        [
+          {
             "node": "Handler decision",
             "type": "main",
             "index": 0
@@ -2230,7 +2368,7 @@
   },
   "settings": {
     "timezone": "Europe/Warsaw",
-    "errorWorkflow": "82e5226a-ec9b-45a2-abc5-5c603a205007",
+    "errorWorkflow": "210cfa85-1e8d-4583-8501-b3520f677c81",
     "executionOrder": "v1",
     "saveExecutionProgress": true,
     "timeSavedPerExecution": 12,

@@ -450,29 +450,29 @@ def assign_adjuster(t: dict) -> Flow:
         240,
     )
     f.add("Pick one", "limit", 1, {"maxItems": 1, "keep": "firstItems"}, 860, 240)
-    f.add("Assignee", "set", 3.4, set_params([("assignee", "={{ $json.name }}", "string")], keep=False), 1080, 240)
     f.add(
         "Book workload",
         "dataTable",
         1.1,
         dt_update(
             t["hub_adjusters"],
-            dt_filter(("name", "eq", "={{ $('Pick one').item.json.name }}")),
-            {"open_tasks": "={{ $('Pick one').item.json.open_tasks + 1 }}"},
+            dt_filter(("name", "eq", "={{ $json.name }}")),
+            {"open_tasks": "={{ $json.open_tasks + 1 }}"},
         ),
-        1400,
-        260,
+        1340,
+        240,
     )
+    f.add("Assignee", "set", 3.4, set_params([("assignee", "={{ $json.name }}", "string")], keep=False), 1560, 240)
     f.add(
         "Attach assignee to claim",
         "merge",
         3.2,
         {"mode": "combine", "combineBy": "combineByPosition", "options": {}},
-        1640,
-        460,
+        1780,
+        440,
     )
-    f.chain("When claim needs adjuster", "Load adjusters", "Least busy first", "Pick one", "Assignee")
-    f.link("Pick one", "Book workload")
+    # One linear path, so the merge is always the last node and the sub-workflow returns the claim.
+    f.chain("When claim needs adjuster", "Load adjusters", "Least busy first", "Pick one", "Book workload", "Assignee")
     f.link("When claim needs adjuster", "Attach assignee to claim", inp=0)
     f.link("Assignee", "Attach assignee to claim", inp=1)
     return f
@@ -504,7 +504,7 @@ def intake(t: dict, wf: dict) -> Flow:
     # sections (x, y, w, h)
     f.section(
         "1 · Intake",
-        "`POST /webhook/claims-hub/intake`\nAI triage result from the claims assistant.",
+        "`POST /webhook/claims-hub/intake`\nAI triage result; caller must send `X-Hub-Token` (else 401).",
         0,
         0,
         400,
@@ -567,9 +567,24 @@ def intake(t: dict, wf: dict) -> Flow:
         "webhook",
         2.2,
         {"httpMethod": "POST", "path": "claims-hub/intake", "responseMode": "responseNode", "options": {}},
-        120,
+        60,
         560,
     )
+    # Shared-secret check: the caller sends X-Hub-Token, compared with the project variable HUB_TOKEN.
+    f.add(
+        "Caller authorized?",
+        "if",
+        2.4,
+        {
+            **if_params(
+                cond("={{ $json.headers['x-hub-token'] || '' }}", "string", "equals", "={{ $vars.HUB_TOKEN }}")
+            ),
+            "options": {},
+        },
+        260,
+        560,
+    )
+    f.add("Respond 401", "respondToWebhook", 1.5, respond(401, '={ "error": "Unauthorized" }'), 260, 860)
     f.add(
         "Normalize payload",
         "set",
@@ -608,6 +623,10 @@ def intake(t: dict, wf: dict) -> Flow:
                 "regex",
                 "^(fast_track|assign_adjuster|request_information|review_possible_exclusion)$",
             ),
+            # Fail closed: NaN fails every comparison, so non-numbers are rejected too.
+            cond("={{ $json.amount }}", "number", "gte", 0),
+            cond("={{ $json.payout }}", "number", "gte", 0),
+            cond("={{ $json.payout }}", "number", "lte", "={{ $json.amount }}"),
         ),
         700,
         560,
@@ -619,7 +638,11 @@ def intake(t: dict, wf: dict) -> Flow:
         set_params(
             [
                 ("error", "Invalid claim payload", "string"),
-                ("hint", "claim_id, product (motor|home|travel) and assessment.next_step are required", "string"),
+                (
+                    "hint",
+                    "claim_id, product (motor|home|travel), assessment.next_step required; 0 <= payout <= amount",
+                    "string",
+                ),
             ],
             keep=False,
         ),
@@ -691,7 +714,10 @@ def intake(t: dict, wf: dict) -> Flow:
         2160,
         560,
     )
-    f.chain("Claim from AI triage", "Normalize payload", "Payload valid?")
+    f.link("Claim from AI triage", "Caller authorized?")
+    f.link("Caller authorized?", "Normalize payload", 0)
+    f.link("Caller authorized?", "Respond 401", 1)
+    f.link("Normalize payload", "Payload valid?")
     f.link("Payload valid?", "Amount plausible?", 0)
     f.link("Payload valid?", "422 body", 1)
     f.link("422 body", "Respond 422")
@@ -927,10 +953,25 @@ def intake(t: dict, wf: dict) -> Flow:
         1.5,
         respond(
             202,
-            "={{ JSON.stringify({ ok: true, claim_id: $('Mark for review').item.json.claim_id, status: 'pending_handler_review', review_form: $execution.resumeFormUrl }) }}",
+            "={{ JSON.stringify({ ok: true, claim_id: $('Mark for review').item.json.claim_id, status: 'pending_handler_review' }) }}",
         ),
         2880,
         1180,
+    )
+    # The review link is a capability: it goes to the internal claims desk only, never back to the caller.
+    f.add(
+        "Send review link to desk",
+        "dataTable",
+        1.1,
+        outbox(
+            o,
+            "internal",
+            "claims-desk",
+            "=Review needed: claim {{ $('Mark for review').item.json.claim_id }}",
+            "={{ $execution.resumeFormUrl }}",
+        ),
+        2880,
+        1360,
     )
     f.add(
         "Handler decision",
@@ -1019,7 +1060,14 @@ def intake(t: dict, wf: dict) -> Flow:
         1180,
     )
     f.link("Route by next step", "Mark for review", 3)
-    f.chain("Mark for review", "Save claim for review", "Respond 202 review", "Handler decision", "Which decision?")
+    f.chain(
+        "Mark for review",
+        "Save claim for review",
+        "Respond 202 review",
+        "Send review link to desk",
+        "Handler decision",
+        "Which decision?",
+    )
     for i, n in enumerate(["Approved by handler", "Rejected by handler", "Escalated to adjuster"]):
         f.link("Which decision?", n, out=i)
         f.link(n, "Join decisions", inp=i)
@@ -1033,7 +1081,15 @@ def customer_form(t: dict, wf: dict) -> Flow:
     f.section(
         "Public form", "`/form/claims-hub/report` - customers report a claim without logging in.", 0, 0, 420, 640, 7
     )
-    f.section("Shape & triage", "Rules decide the first next step; API claims arrive already triaged by the AI assistant.", 440, 0, 900, 640, 6)
+    f.section(
+        "Shape & triage",
+        "Rules decide the first next step; API claims arrive already triaged by the AI assistant.",
+        440,
+        0,
+        900,
+        640,
+        6,
+    )
     f.section(
         "Store, notify, confirm", "Saved like API claims; the customer sees a confirmation page.", 1360, 0, 1120, 640, 4
     )

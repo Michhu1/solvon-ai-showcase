@@ -70,7 +70,7 @@ def main() -> int:
     work = Path(tempfile.mkdtemp(prefix="hub-traffic-"))
     service = ClaimsService(replace(Settings(), trace_dir=None, audit_log=work / "audit.jsonl"))
     claims = [json.loads(line)["request"] for line in DATASET.read_text("utf-8").splitlines() if line.strip()] + EXTRA
-    http = httpx.Client(base_url=base, timeout=60)
+    http = httpx.Client(base_url=base, timeout=60, headers={"X-Hub-Token": env["HUB_TOKEN"]})
     results = []
     for i, raw in enumerate(claims, 1):
         claim = ClaimRequest.model_validate(raw)
@@ -96,6 +96,16 @@ def main() -> int:
         print(f"{payload['claim_id']} {assessment.next_step.value:<26} -> {r.status_code} {r.text[:120]}")
 
     print("\n-- edge cases --")
+    r = httpx.post(f"{base}/webhook/claims-hub/intake", json={"claim_id": "CLM-NOAUTH"}, timeout=60)
+    print("no token ->", r.status_code, r.text[:160])
+    neg = {
+        "claim_id": "CLM-NEG-1",
+        "product": "motor",
+        "description": "negative",
+        "assessment": {"next_step": "fast_track", "estimated_payout": 900, "fields": {"claimed_amount": -500}},
+    }
+    r = http.post("/webhook/claims-hub/intake", json=neg)
+    print("negative amount / payout > amount ->", r.status_code, r.text[:160])
     bad = {"claim_id": "", "product": "boat", "assessment": {"next_step": "pay_now"}}
     r = http.post("/webhook/claims-hub/intake", json=bad)
     print("invalid payload ->", r.status_code, r.text[:160])
@@ -146,10 +156,13 @@ def main() -> int:
 
     print("\n-- waiting for a human --")
     for row in results:
-        body = row["body"] or {}
-        link = body.get("review_form") or body.get("form")
-        if link:
-            print(row["claim_id"], row["next_step"], link)
+        if row["status"] == 202:
+            where = (
+                "customer form in the response"
+                if (row["body"] or {}).get("form")
+                else "review link sent to the claims desk"
+            )
+            print(row["claim_id"], row["next_step"], "->", where)
     return 0
 
 

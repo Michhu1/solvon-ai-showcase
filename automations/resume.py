@@ -37,14 +37,28 @@ def submit_url(page: str, base: str) -> str:
     return url if url.startswith("http") else base + url
 
 
+def desk_review_links(env: dict[str, str]) -> dict[str, str]:
+    """Review links are never returned to the API caller; the claims desk gets them through the internal outbox."""
+    ids = json.loads((HERE / "out" / "ids.json").read_text("utf-8"))
+    api = httpx.Client(base_url=f"{env['SOLVON_URL']}/api/v1", headers={"X-N8N-API-KEY": env["SOLVON_API_KEY"]})
+    rows = api.get(f"/data-tables/{ids['tables']['hub_outbox']}/rows", params={"limit": 250}).json()
+    links = {}
+    for row in rows.get("data", rows):
+        if row["channel"] == "internal" and row["subject"].startswith("Review needed: claim "):
+            links[row["subject"].rsplit(" ", 1)[-1]] = row["body"]
+    return links
+
+
 def main() -> int:
+    env = load_env()
     results = json.loads((HERE / "out" / "traffic.json").read_text("utf-8"))
+    desk = desk_review_links(env)
     used = {key: 0 for key in ANSWERS}
     http = httpx.Client(timeout=60)
     for row in [] if "--web-only" in sys.argv else results:
         body = row["body"] or {}
-        link = body.get("review_form") or body.get("form")
-        if not link:
+        link = body.get("form") or desk.get(row["claim_id"])
+        if not link or row["next_step"] not in ANSWERS:
             continue
         values = ANSWERS[row["next_step"]][used[row["next_step"]] % len(ANSWERS[row["next_step"]])]
         used[row["next_step"]] += 1
@@ -79,6 +93,15 @@ def main() -> int:
         target = submit_url(page.text, base)
         r = http.post(target, files={f"field-{i}": (None, v) for i, v in enumerate(values)})
         print("web form", values[1], "->", r.status_code, r.text[:140].replace("\n", " "))
+        # A browser opens the thank-you page right away; that completes the execution.
+        if r.status_code == 200 and "formWaitingUrl" in r.text:
+            waiting = httpx.URL(r.json()["formWaitingUrl"]).copy_with(host=httpx.URL(base).host)
+            status = waiting.copy_with(path=waiting.path.rstrip("/") + "/execution-status")
+            for _ in range(5):
+                if http.get(status).status_code == 200:
+                    break
+            page = http.get(waiting)
+            print("   thank-you page ->", page.status_code, "Thank you" in page.text)
     return 0
 
 
